@@ -1,17 +1,30 @@
 {
-  "name": "the-menufy-backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "mongoose": "^8.10.1"
-  }
+	"name": "the-menufy-backend",
+	"version": "1.0.0",
+	"description": "",
+	"main": "src/server.js",
+	"type": "commonjs",
+	"scripts": {
+		"start": "node --watch src/server.js",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"_moduleAliases": {
+		"@": "src",
+		"@config": "src/config",
+		"@modules": "src/modules",
+		"@middlewares": "src/middlewares",
+		"@utils": "src/utils"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"dotenv": "^16.4.7",
+		"express": "^4.21.2",
+		"express-handlebars": "^8.0.1",
+		"module-alias": "^2.2.3",
+		"mongoose": "^8.10.1",
+		"nodemailer": "^6.10.0",
+		"nodemailer-express-handlebars": "^7.0.0"
+	}
 }
