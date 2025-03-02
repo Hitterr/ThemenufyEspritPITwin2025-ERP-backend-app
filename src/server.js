@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Routes
 // TODO: Add your routes here
-// app.use('/api/auth', require('@modules/auth/routes'));
+app.use("/api/auth", require("@modules/auth/routes"));
 // app.use('/api/users', require('@modules/user/routes'));
 // Start server
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
