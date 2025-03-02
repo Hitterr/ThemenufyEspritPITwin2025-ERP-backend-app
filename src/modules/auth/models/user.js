@@ -25,6 +25,10 @@ const userSchema = new Schema(
 			enum: ["admin", "superadmin", "staff", "manager"],
 			default: "staff",
 		},
+		isVerified: {
+			type: Boolean,
+			default: false,
+		},
 	},
 	{ timestamps: true } // Adds `createdAt` & `updatedAt` automatically
 );
