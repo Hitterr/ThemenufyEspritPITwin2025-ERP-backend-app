@@ -14,6 +14,5 @@ app.use(express.urlencoded({ extended: true }));
 // TODO: Add your routes here
 // app.use('/api/auth', require('@modules/auth/routes'));
 // app.use('/api/users', require('@modules/user/routes'));
-sendVerificationEmail("liwopo2999@arinuse.com", "123456");
 // Start server
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
