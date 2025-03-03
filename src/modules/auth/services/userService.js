@@ -36,5 +36,9 @@ class UserService {
 		const result = await User.findByIdAndDelete(id);
 		return result;
 	}
+	async getUserByEmail(email) {
+		const user = await User.findOne({ email });
+		return user;
+	}
 }
 module.exports = new UserService();
