@@ -101,21 +101,21 @@ class LoginController {
 			});
 		}
 	}
-    // Handle device verification
-    async verifyDevice(req, res) {
-        try {
-            const { token } = req.params;
-            const result = await loginService.verifyEmailForDevice(token);
-            return res.status(200).json({
-                success: true,
-                ...result
-            });
-        } catch (error) {
-            return res.status(400).json({
-                success: false,
-                message: error.message || "Device verification failed"
-            });
-        }
-    }
+	// Handle device verification
+	async verifyDevice(req, res) {
+		try {
+			const { token } = req.params;
+			const result = await loginService.verifyEmailForDevice(token);
+			return res.status(200).json({
+				success: true,
+				...result,
+			});
+		} catch (error) {
+			return res.status(400).json({
+				success: false,
+				message: error.message || "Device verification failed",
+			});
+		}
+	}
 }
 module.exports = new LoginController();

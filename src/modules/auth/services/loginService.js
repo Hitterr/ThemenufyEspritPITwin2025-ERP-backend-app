@@ -107,7 +107,7 @@ class LoginService {
 	async verifyEmailForDevice(verificationToken) {
 		try {
 			const decoded = jwt.verify(verificationToken, process.env.JWT_SECRET);
-			const user = await userService.getUserByEmail(email);
+			const user = await userService.getUserByEmail(decoded.email);
 			if (!user) {
 				throw new Error("User not found");
 			}
@@ -117,7 +117,7 @@ class LoginService {
 			}
 			delete user.password;
 			return {
-				token,
+				token: verificationToken,
 				user,
 			};
 		} catch (error) {
@@ -131,19 +131,22 @@ class LoginService {
 		}
 	}
 	// Facebook login
-	async loginWithFacebook(accessToken) {
+	async loginWithFacebook(accessToken, deviceId) {
 		try {
 			// Verify Facebook access token and get user data
 			const response = await axios.get(
 				`https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`
 			);
-			const { email, name } = response.data;
-			let user = await User.findOne({ email });
+			const { email, name, id } = response.data;
+			let user = await userService.getUserByEmail(email);
 			if (!user) {
 				// Create new user if doesn't exist
+				const hashedPassword = await hashPassword(id);
 				user = await User.create({
 					email,
 					name,
+					password: hashedPassword,
+					authProvider: "facebook",
 					isEmailVerified: true,
 					authProvider: "facebook",
 				});
@@ -167,6 +170,7 @@ class LoginService {
 				user,
 			};
 		} catch (error) {
+			console.log("📢 [loginService.js:173]", error);
 			throw new Error("Facebook authentication failed");
 		}
 	}
