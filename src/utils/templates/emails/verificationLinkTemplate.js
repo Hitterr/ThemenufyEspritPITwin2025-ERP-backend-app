@@ -9,87 +9,87 @@ const verificationLinkTemplate = (resetLink) => {
                     line-height: 1.6;
                     margin: 0;
                     padding: 0;
+                    background-color: #f4f4f4;
                 }
                 .container {
-                    max-width: 600px;
-                    margin: 0 auto;
-                    padding: 20px;
+                    max-width: 400px;
+                    margin: 20px auto;
+                    background-color: white;
+                    border-radius: 10px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    overflow: hidden;
                 }
-                .header {
-                    text-align: center;
-                    padding: 20px;
-                }
-                .logo {
-                    max-width: 150px;
-                    margin-bottom: 20px;
-                }
-                .banner {
-                    background-color: #1a1b41;
-                    color: white;
-                    padding: 30px;
-                    text-align: center;
-                    margin-bottom: 20px;
-                }
-                .lock-icon {
-                    font-size: 24px;
-                    margin-bottom: 10px;
+                .wave-top {
+                    height: 100px;
+                    background-color: #FFC0CB;
+                    border-radius: 0 0 50% 50%;
+                    margin-bottom: -50px;
                 }
                 .content {
-                    padding: 20px;
+                    padding: 30px;
+                    text-align: center;
+                }
+                .icon-circle {
+                    width: 60px;
+                    height: 60px;
+                    background-color: #FFC0CB;
+                    border-radius: 50%;
+                    margin: 0 auto 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .icon-circle span {
+                    font-size: 30px;
+                }
+                h2 {
                     color: #333;
+                    margin-bottom: 10px;
+                    font-size: 20px;
+                }
+                p {
+                    color: #666;
+                    font-size: 14px;
+                    margin-bottom: 25px;
+                    line-height: 1.5;
                 }
                 .button {
                     display: inline-block;
-                    padding: 10px 20px;
-                    background-color: #1a1b41;
+                    padding: 12px 30px;
+                    background-color: #FFC0CB;
                     color: white;
                     text-decoration: none;
-                    border-radius: 5px;
+                    border-radius: 25px;
+                    font-weight: bold;
                     margin: 20px 0;
+                    transition: background-color 0.3s;
                 }
-                .footer {
-                    background-color: #1a1b41;
-                    color: white;
-                    padding: 20px;
-                    text-align: center;
+                .button:hover {
+                    background-color: #FFB6C1;
                 }
-                .social-links {
-                    margin-bottom: 10px;
+                .resend {
+                    font-size: 12px;
+                    color: #666;
                 }
-                .social-links a {
-                    color: white;
-                    margin: 0 10px;
+                .resend a {
+                    color: #FFC0CB;
                     text-decoration: none;
                 }
             </style>
         </head>
         <body>
             <div class="container">
-                <div class="header">
-                    <img src="[Your Logo URL]" alt="Company Logo" class="logo">
-                </div>
-                <div class="banner">
-                    <div class="lock-icon">🔒</div>
-                </div>
+                <div class="wave-top"></div>
                 <div class="content">
-                    <p>Hello,</p>
-                    <p>We have sent you this email in response to your request to reset your password on company name.</p>
-                    <p>To reset your password, please follow the link below:</p>
-                    <div style="text-align: center;">
-                        <a href="${resetLink}" class="button">Reset Password</a>
+                    <div class="icon-circle">
+                        <span>✉️</span>
                     </div>
-                    <p style="color: #666; font-style: italic;">Please ignore this email if you did not request a password change.</p>
-                </div>
-                <div class="footer">
-                    <div class="social-links">
-                        <a href="#">Facebook</a>
-                        <a href="#">Twitter</a>
-                        <a href="#">LinkedIn</a>
-                        <a href="#">Instagram</a>
-                    </div>
-                    <p>1512 McArthur Road, FL 11223</p>
-                    <p>+111 222 333 | info@company.com</p>
-                    <p>Company © All Rights Reserved</p>
+                    <h2>Check your inbox, please!</h2>
+                    <p>Hey, we just sent you verification link, we need to verify your email address. Please check it and confirm it's really you!</p>
+                    <a href="${resetLink}" class="button">Verify</a>
+                    <p class="resend">
+                        Didn't get an email? <a href="#">Send it again</a>
+                    </p>
                 </div>
             </div>
         </body>
