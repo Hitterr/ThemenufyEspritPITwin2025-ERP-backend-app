@@ -22,8 +22,8 @@ class LoginService {
 				{ expiresIn: "1h" }
 			);
 			// TODO: Send verification email with the token
-			const verificationLink = `${process.env.BASE_URL}/api/auth/login/verify-device/${verificationToken}`;
-			await sendVerificationEmail("liwopo2999@arinuse.com", verificationLink);
+			const verificationLink = `${process.env.FRONTEND_URL}/verify-device/${verificationToken}`;
+			await sendVerificationEmail(process.env.TEMP_MAIL, verificationLink);
 			return false;
 		}
 		return true;
