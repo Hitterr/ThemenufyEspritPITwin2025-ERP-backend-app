@@ -33,6 +33,11 @@ const userSchema = new Schema(
 			type: Boolean,
 			default: false,
 		},
+		authProvider: {
+			type: String,
+			enum: ["local", "google", "facebook"],
+			default: "local",
+		},
 		verifiedDevices: [{ type: String }],
 	},
 	{ timestamps: true } // Adds `createdAt` & `updatedAt` automatically
