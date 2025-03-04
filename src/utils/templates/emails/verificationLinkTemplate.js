@@ -1,5 +1,5 @@
 const verificationLinkTemplate = (resetLink) => {
-	return `
+  return `
         <!DOCTYPE html>
         <html>
         <head>
@@ -86,7 +86,7 @@ const verificationLinkTemplate = (resetLink) => {
                     </div>
                     <h2>Check your inbox, please!</h2>
                     <p>Hey, we just sent you verification link, we need to verify your email address. Please check it and confirm it's really you!</p>
-                    <a href="${resetLink}" class="button">Verify</a>
+                    <a href="${resetLink}" target="_blank" class="button">Verify</a>
                     <p class="resend">
                         Didn't get an email? <a href="#">Send it again</a>
                     </p>
