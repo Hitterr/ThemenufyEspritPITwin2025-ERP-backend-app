@@ -4,10 +4,10 @@ const jwt = require("jsonwebtoken");
 
 class SuperAdminService {
     async createSuperAdmin(data) {
-        const { name, email, password } = data;
+        const { email, password } = data;
       
-     /*   if (!email || !password || !name) {
-          throw new Error("All fields (name, email, password) are required
+     /*   if (!email || !password) {
+          throw new Error("All fields (, email, password) are required
 ");
         }*/
       
@@ -16,7 +16,6 @@ class SuperAdminService {
       
         const hashedPassword = await bcrypt.hash(password, 10);
         const newAdmin = await SuperAdmin.create({
-          name,
           email,
           password: hashedPassword,
         });

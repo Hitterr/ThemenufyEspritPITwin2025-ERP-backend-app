@@ -1,8 +1,7 @@
 const yup = require("yup");
 
 const superAdminSchema = yup.object({
-  name: yup.
-  string().required("name is required"),
+
 
     email: yup.
     string().email("Invalid email").required("Email is required"),
