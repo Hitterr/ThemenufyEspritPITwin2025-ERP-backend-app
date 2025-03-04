@@ -1,9 +1,9 @@
-const User = require("../../../models/User");
+const User = require("../../../models/user");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const { comparePassword, hashPassword } = require("../../../utils/hash");
 const { sendVerificationEmail } = require("../../../utils/mailing");
-const userService = require("./userService");
+const userService = require("../../user/services/userService");
 class LoginService {
   // Helper method to check device and send verification if needed
   async verifyDevice(user, deviceId) {

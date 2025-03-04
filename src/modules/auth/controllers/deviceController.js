@@ -1,4 +1,4 @@
-const { userService } = require("../services");
+const userService = require("../../user/services/userService");
 const deviceService = require("../services/deviceService");
 
 class DeviceController {
