@@ -21,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use("/api/auth", require("@modules/auth/routes"));
 app.use("/api/user", require("@modules/user/routes"));
+app.use("/api/restaurant", require("@modules/restaurant/routes"));
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
