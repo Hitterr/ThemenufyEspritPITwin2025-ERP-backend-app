@@ -1,15 +1,37 @@
 const User = require("../models/User");
-const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { OAuth2Client } = require("google-auth-library");
 const axios = require("axios");
-const { comparePassword } = require("../../../utils/hash");
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const { comparePassword, hashPassword } = require("../../../utils/hash");
+const { sendVerificationEmail } = require("../../../utils/mailing");
+const userService = require("./userService");
 class LoginService {
+	// Helper method to check device and send verification if needed
+	async verifyDevice(user, deviceId) {
+		if (!user.verifiedDevices) {
+			user.verifiedDevices = [];
+		}
+		if (!user.verifiedDevices.includes(deviceId)) {
+			// Generate verification token for this device
+			const verificationToken = jwt.sign(
+				{
+					userId: user._id,
+					email: user.email,
+					deviceId,
+				},
+				process.env.JWT_SECRET,
+				{ expiresIn: "1h" }
+			);
+			// TODO: Send verification email with the token
+			const verificationLink = `${process.env.BASE_URL}/api/auth/login/verify-device/${verificationToken}`;
+			await sendVerificationEmail("liwopo2999@arinuse.com", verificationLink);
+			return false;
+		}
+		return true;
+	}
 	// Email & Password login
-	async loginWithEmailPassword(email, password) {
+	async loginWithEmailPassword(email, password, deviceId) {
 		try {
-			const user = await User.findOne({ email });
+			const user = await userService.getUserByEmail(email);
 			if (!user) {
 				throw new Error("User not found");
 			}
@@ -17,94 +39,138 @@ class LoginService {
 			if (!isValidPassword) {
 				throw new Error("Invalid credentials");
 			}
+			// Verify device
+			const status = await this.verifyDevice(user, deviceId);
+			if (!status) {
+				return {
+					status: false,
+					message:
+						"Please verify your device to login! We sent you an email with a verification link. ",
+				};
+			}
 			const token = jwt.sign(
 				{ userId: user._id, email: user.email },
 				process.env.JWT_SECRET,
 				{ expiresIn: "24h" }
 			);
+			delete user.password;
 			return {
 				token,
-				user: {
-					id: user._id,
-					email: user.email,
-					name: user.name,
-					role: user.role,
-				},
+				user,
 			};
 		} catch (error) {
 			throw error;
 		}
 	}
 	// Google login
-	async loginWithGoogle(tokenId) {
+	async loginWithGoogle(tokenId, deviceId) {
 		try {
-			const ticket = await googleClient.verifyIdToken({
-				idToken: tokenId,
-				audience: process.env.GOOGLE_CLIENT_ID,
-			});
-			const { email, name, picture } = ticket.getPayload();
-			let user = await User.findOne({ email });
+			const decodedToken = jwt.decode(tokenId);
+			const { email, name, picture, jti } = decodedToken;
+			let user = await userService.getUserByEmail(email);
 			if (!user) {
-				// Create new user if doesn't exist
+				const hashedPassword = await hashPassword(jti);
 				user = await User.create({
 					email,
 					name,
+					password: hashedPassword,
 					profilePicture: picture,
-					isVerified: true,
 					authProvider: "google",
+					isEmailVerified: true,
+					verifiedDevices: [], // Initialize empty devices array
 				});
+			}
+			// Verify device
+			const status = await this.verifyDevice(user, deviceId);
+			if (!status) {
+				return {
+					status: false,
+					message:
+						"Please verify your device to login! We sent you an email with a verification link. ",
+				};
 			}
 			const token = jwt.sign(
 				{ userId: user._id, email: user.email },
 				process.env.JWT_SECRET,
 				{ expiresIn: "24h" }
 			);
+			delete user.password;
 			return {
 				token,
-				user: {
-					id: user._id,
-					email: user.email,
-					name: user.name,
-					role: user.role,
-				},
+				user,
 			};
 		} catch (error) {
 			throw new Error("Google authentication failed");
 		}
 	}
+	// Email verification for device
+	async verifyEmailForDevice(verificationToken) {
+		try {
+			const decoded = jwt.verify(verificationToken, process.env.JWT_SECRET);
+			const user = await userService.getUserByEmail(decoded.email);
+			if (!user) {
+				throw new Error("User not found");
+			}
+			if (!user.verifiedDevices.includes(decoded.deviceId)) {
+				user.verifiedDevices.push(decoded.deviceId);
+				await user.save();
+			}
+			delete user.password;
+			return {
+				token: verificationToken,
+				user,
+			};
+		} catch (error) {
+			if (error.name === "JsonWebTokenError") {
+				throw new Error("Invalid verification token");
+			}
+			if (error.name === "TokenExpiredError") {
+				throw new Error("Verification token has expired");
+			}
+			throw error;
+		}
+	}
 	// Facebook login
-	async loginWithFacebook(accessToken) {
+	async loginWithFacebook(accessToken, deviceId) {
 		try {
 			// Verify Facebook access token and get user data
 			const response = await axios.get(
 				`https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`
 			);
-			const { email, name } = response.data;
-			let user = await User.findOne({ email });
+			const { email, name, id } = response.data;
+			let user = await userService.getUserByEmail(email);
 			if (!user) {
 				// Create new user if doesn't exist
+				const hashedPassword = await hashPassword(id);
 				user = await User.create({
 					email,
 					name,
-					isVerified: true,
+					password: hashedPassword,
+					authProvider: "facebook",
+					isEmailVerified: true,
 					authProvider: "facebook",
 				});
+			}
+			const status = await this.verifyDevice(user, deviceId);
+			if (!status) {
+				return {
+					status: false,
+					message:
+						"Please verify your device to login! We sent you an email with a verification link. ",
+				};
 			}
 			const token = jwt.sign(
 				{ userId: user._id, email: user.email },
 				process.env.JWT_SECRET,
 				{ expiresIn: "24h" }
 			);
+			delete user.password;
 			return {
 				token,
-				user: {
-					id: user._id,
-					email: user.email,
-					name: user.name,
-					role: user.role,
-				},
+				user,
 			};
 		} catch (error) {
+			console.log("📢 [loginService.js:173]", error);
 			throw new Error("Facebook authentication failed");
 		}
 	}
@@ -112,24 +178,16 @@ class LoginService {
 	async verifyEmail(verificationToken) {
 		try {
 			const decoded = jwt.verify(verificationToken, process.env.JWT_SECRET);
-			const user = await User.findOne({ email: decoded.email });
+			const user = await userService.getUserByEmail(decoded.email);
 			if (!user) {
 				throw new Error("User not found");
 			}
-			if (user.isVerified) {
+			if (user.isEmailVerified) {
 				throw new Error("Email already verified");
 			}
-			user.isVerified = true;
+			user.isEmailVerified = true;
 			await user.save();
-			return {
-				message: "Email verified successfully",
-				user: {
-					id: user._id,
-					email: user.email,
-					name: user.name,
-					role: user.role,
-				},
-			};
+			return true;
 		} catch (error) {
 			if (error.name === "JsonWebTokenError") {
 				throw new Error("Invalid verification token");

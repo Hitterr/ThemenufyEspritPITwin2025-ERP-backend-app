@@ -22,13 +22,23 @@ const userSchema = new Schema(
 		},
 		role: {
 			type: String,
-			enum: ["admin", "superadmin", "staff", "manager"],
-			default: "staff",
+			enum: ["admin", "superadmin", "employee", "client"],
+			default: "admin",
 		},
 		isVerified: {
 			type: Boolean,
 			default: false,
 		},
+		isEmailVerified: {
+			type: Boolean,
+			default: false,
+		},
+		authProvider: {
+			type: String,
+			enum: ["local", "google", "facebook"],
+			default: "local",
+		},
+		verifiedDevices: [{ type: String }],
 	},
 	{ timestamps: true } // Adds `createdAt` & `updatedAt` automatically
 );

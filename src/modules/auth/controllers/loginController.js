@@ -1,30 +1,22 @@
 const { loginService } = require("../services");
+const {
+	emailPasswordSchema,
+	facebookSchema,
+	googleSchema,
+} = require("../validators/loginValidator");
 const yup = require("yup");
-// Validation schemas
-const emailPasswordSchema = yup.object({
-	email: yup
-		.string()
-		.email("Invalid email format")
-		.required("Email is required"),
-	password: yup
-		.string()
-		.min(6, "Password must be at least 6 characters")
-		.required("Password is required"),
-});
-const googleSchema = yup.object({
-	tokenId: yup.string().required("Google token is required"),
-});
-const facebookSchema = yup.object({
-	accessToken: yup.string().required("Facebook access token is required"),
-});
 class LoginController {
 	// Handle email/password login
 	async loginWithEmailPassword(req, res) {
 		try {
 			// Validate request body
 			await emailPasswordSchema.validate(req.body, { abortEarly: false });
-			const { email, password } = req.body;
-			const result = await loginService.loginWithEmailPassword(email, password);
+			const { email, password, deviceId } = req.body;
+			const result = await loginService.loginWithEmailPassword(
+				email,
+				password,
+				deviceId
+			);
 			return res.status(200).json({
 				success: true,
 				data: result,
@@ -48,8 +40,8 @@ class LoginController {
 		try {
 			// Validate request body
 			await googleSchema.validate(req.body, { abortEarly: false });
-			const { tokenId } = req.body;
-			const result = await loginService.loginWithGoogle(tokenId);
+			const { tokenId, deviceId } = req.body;
+			const result = await loginService.loginWithGoogle(tokenId, deviceId);
 			return res.status(200).json({
 				success: true,
 				data: result,
@@ -73,8 +65,8 @@ class LoginController {
 		try {
 			// Validate request body
 			await facebookSchema.validate(req.body, { abortEarly: false });
-			const { accessToken } = req.body;
-			const result = await loginService.loginWithFacebook(accessToken);
+			const { accessToken, deviceId } = req.body;
+			const result = await loginService.loginWithFacebook(accessToken, deviceId);
 			return res.status(200).json({
 				success: true,
 				data: result,
@@ -93,22 +85,37 @@ class LoginController {
 			});
 		}
 	}
-    // Handle email verification
-    async verifyEmail(req, res) {
-        try {
-            const { token } = req.params;
-            const result = await loginService.verifyEmail(token);
-            
-            return res.status(200).json({
-                success: true,
-                ...result
-            });
-        } catch (error) {
-            return res.status(400).json({
-                success: false,
-                message: error.message || "Email verification failed"
-            });
-        }
-    }
+	// Handle email verification
+	async verifyEmail(req, res) {
+		try {
+			const { token } = req.params;
+			const result = await loginService.verifyEmail(token);
+			return res.status(200).json({
+				success: true,
+				...result,
+			});
+		} catch (error) {
+			return res.status(400).json({
+				success: false,
+				message: error.message || "Email verification failed",
+			});
+		}
+	}
+	// Handle device verification
+	async verifyDevice(req, res) {
+		try {
+			const { token } = req.params;
+			const result = await loginService.verifyEmailForDevice(token);
+			return res.status(200).json({
+				success: true,
+				...result,
+			});
+		} catch (error) {
+			return res.status(400).json({
+				success: false,
+				message: error.message || "Device verification failed",
+			});
+		}
+	}
 }
 module.exports = new LoginController();
