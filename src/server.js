@@ -22,7 +22,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", require("@modules/auth/routes"));
 app.use("/api/user", require("@modules/user/routes"));
 app.use("/api/employee", require("@modules/employee"));
-app.use("/api/superadmins", require("@modules/superAdmin/routes/superadminRoutes"));
+app.use("/api/superadmins", require("@modules/superAdmin"));
+app.use("/api/restaurant", require("@modules/restaurant"));
 
 // Start server
 app.listen(PORT, () => {
