@@ -1,4 +1,4 @@
-const User = require("../models/User");
+const User = require("../../../models/User");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const { comparePassword, hashPassword } = require("../../../utils/hash");
@@ -49,7 +49,7 @@ class LoginService {
         };
       }
       const token = jwt.sign(
-        { userId: user._id, email: user.email },
+        { userId: user._id, email: user.email, deviceId },
         process.env.JWT_SECRET,
         { expiresIn: "24h" }
       );
@@ -91,7 +91,7 @@ class LoginService {
         };
       }
       const token = jwt.sign(
-        { userId: user._id, email: user.email },
+        { userId: user._id, email: user.email, deviceId },
         process.env.JWT_SECRET,
         { expiresIn: "24h" }
       );
@@ -163,7 +163,7 @@ class LoginService {
         };
       }
       const token = jwt.sign(
-        { userId: user._id, email: user.email },
+        { userId: user._id, email: user.email, deviceId },
         process.env.JWT_SECRET,
         { expiresIn: "24h" }
       );
@@ -199,6 +199,27 @@ class LoginService {
       if (error.name === "TokenExpiredError") {
         throw new Error("Verification token has expired");
       }
+      throw error;
+    }
+  }
+  // Profile
+  async getProfile(userId, deviceId) {
+    try {
+      const user = await userService.getUserById(userId);
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      if (!user.verifiedDevices.includes(deviceId)) {
+        throw new Error("Device not verified");
+      }
+      const token = jwt.sign(
+        { userId: user._id, email: user.email, deviceId },
+        process.env.JWT_SECRET,
+        { expiresIn: "24h" }
+      );
+      return { token, user, deviceId };
+    } catch (error) {
       throw error;
     }
   }

@@ -10,12 +10,15 @@ const verifyToken = (req, res, next) => {
     });
   }
 
-  console.log(authHeader);
   const token = authHeader.split(" ")[1];
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
+    console.log(
+      "🔍 ~  ~ src/middlewares/authMiddleware.js:17 ~ req.user:",
+      req.user
+    );
     next();
   } catch (error) {
     return res.status(401).json({
