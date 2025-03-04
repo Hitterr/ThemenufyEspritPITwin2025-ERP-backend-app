@@ -14,6 +14,17 @@ class DeviceService {
 
     return user.verifiedDevices;
   }
+  async checkDevice(userId, deviceId) {
+      const user = await userService.getUserById(userId);
+      if (!user) {
+          throw new Error('User not found');
+      }
+  
+      return {
+          isVerified: user.verifiedDevices.includes(deviceId),
+          deviceId
+      };
+  }
 }
 
 module.exports = new DeviceService();
