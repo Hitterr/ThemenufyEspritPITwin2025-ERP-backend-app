@@ -1,6 +1,6 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
-const User = require("../../modules/auth/models/User");
+const User = require("../../modules/auth/models/user");
 const users = require("./userSeeds");
 const { hashPassword } = require("../../utils/hash");
 const seedDatabase = async () => {

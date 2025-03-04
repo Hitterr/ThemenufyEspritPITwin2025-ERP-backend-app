@@ -1,5 +1,5 @@
 const { hashPassword } = require("../../../utils/hash");
-const User = require("../models/User");
+const User = require("../models/user");
 const bcrypt = require("bcrypt");
 class UserService {
 	async createUser(userData) {
