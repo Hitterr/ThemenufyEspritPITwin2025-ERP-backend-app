@@ -1,9 +1,18 @@
 const mongoose = require("mongoose");
 const User = require("./user");
 
-const employeeSchema = new mongoose.Schema({});
+const employeeSchema = new mongoose.Schema({
+  salary: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
+  restaurantFK: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Restaurant",
+    required: true,
+  },
+});
 
-// Inherit from User schema
-const Admin = User.discriminator("Employee", employeeSchema);
-
-module.exports = Admin;
+const Employee = User.discriminator("Employee", employeeSchema);
+module.exports = Employee;
