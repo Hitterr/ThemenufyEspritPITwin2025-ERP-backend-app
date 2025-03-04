@@ -1,4 +1,4 @@
-const { userService } = require("../services");
+const { userService } = require("../../auth/services");
 const { userSchema } = require("../validators/userValidator");
 const yup = require("yup");
 class UserController {
