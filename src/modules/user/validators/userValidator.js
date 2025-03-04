@@ -1,7 +1,7 @@
 const yup = require("yup");
+
 const userSchema = yup.object({
-  firstName: yup.string().required("First name is required"),
-  lastName: yup.string().required("Last name is required"),
+  name: yup.string().required("Name is required"),
   email: yup.string().email("Invalid email").required("Email is required"),
   password: yup
     .string()
@@ -9,9 +9,17 @@ const userSchema = yup.object({
     .required("Password is required"),
   role: yup
     .string()
-    .oneOf(["admin", "superadmin", "staff", "manager"])
-    .required("Role is required"),
+    .oneOf(["user", "admin", "superadmin", "employee", "client"])
+    .default("user"),
+  isEmailVerified: yup.boolean().default(false),
+  verifiedDevices: yup.array().of(yup.string()).default([]),
+  profilePicture: yup.string().nullable(),
+  authProvider: yup
+    .string()
+    .oneOf(["local", "google", "facebook"])
+    .default("local"),
 });
+
 module.exports = {
   userSchema,
 };

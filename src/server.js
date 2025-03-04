@@ -50,3 +50,4 @@ const logAvailableRoutes = () => {
     });
   });
 };
+module.exports = app;
