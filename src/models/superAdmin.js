@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-const userSchema = new Schema(
+const SuperAdminSchema = new Schema(
   {
     email: {
       type: String,
@@ -29,6 +29,6 @@ const userSchema = new Schema(
   { timestamps: true } // Adds `createdAt` & `updatedAt` automatically
 );
 // Index email for faster lookups
-userSchema.index({ email: 1 });
+SuperAdminSchema.index({ email: 1 });
 // Export model
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model("SuperAdmin", SuperAdminSchema);
