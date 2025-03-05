@@ -67,15 +67,21 @@ class LoginService {
   async loginWithGoogle(tokenId, deviceId) {
     try {
       const decodedToken = jwt.decode(tokenId);
-      const { email, name, picture, jti } = decodedToken;
+      const { email, given_name, family_name, picture, jti } = decodedToken;
+      console.log(
+        "🔍 ~ loginWithGoogle ~ src/modules/auth/services/loginService.js:70 ~ decodedToken:",
+        decodedToken
+      );
+
       let user = await userService.getUserByEmail(email);
       if (!user) {
         const hashedPassword = await hashPassword(jti);
         user = await User.create({
           email,
-          name,
+          firstName: given_name,
+          lastName: family_name,
           password: hashedPassword,
-          profilePicture: picture,
+          image: picture,
           authProvider: "google",
           isEmailVerified: true,
           verifiedDevices: [], // Initialize empty devices array
@@ -138,16 +144,17 @@ class LoginService {
     try {
       // Verify Facebook access token and get user data
       const response = await axios.get(
-        `https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`
+        `https://graph.facebook.com/me?fields=id,first_name,last_name,email&access_token=${accessToken}`
       );
-      const { email, name, id } = response.data;
+      const { email, first_name, last_name, id } = response.data;
       let user = await userService.getUserByEmail(email);
       if (!user) {
         // Create new user if doesn't exist
         const hashedPassword = await hashPassword(id);
         user = await User.create({
           email,
-          name,
+          firstName: first_name,
+          lastName: last_name,
           password: hashedPassword,
           authProvider: "facebook",
           isEmailVerified: true,

@@ -1,43 +1,44 @@
 {
-	"name": "the-menufy-backend",
-	"version": "1.0.0",
-	"description": "",
-	"main": "src/server.js",
-	"type": "commonjs",
-	"scripts": {
-		"start": "node --watch src/server.js",
-		"seed": "node src/config/seeds/seeder.js",
-		"test": "echo \"Error: no test specified\" && exit 1"
-	},
-	"_moduleAliases": {
-		"@": "src",
-		"@config": "src/config",
-		"@modules": "src/modules",
-		"@middlewares": "src/middlewares",
-		"@utils": "src/utils"
-	},
-	"keywords": [],
-	"author": "",
-	"license": "ISC",
-	"dependencies": {
-		"axios": "^1.8.1",
-		"bcrypt": "^5.1.1",
-		"cors": "^2.8.5",
-		"dotenv": "^16.4.7",
-		"express": "^4.21.2",
-		"express-handlebars": "^8.0.1",
-		"express-list-endpoints": "^7.1.1",
-		"google-auth-library": "^9.15.1",
-		"jsonwebtoken": "^9.0.2",
-		"module-alias": "^2.2.3",
-		"mongoose": "^8.10.1",
-		"nodemailer": "^6.10.0",
-		"nodemailer-express-handlebars": "^7.0.0",
-		"yup": "^1.6.1"
-	},
-	"pnpm": {
-		"onlyBuiltDependencies": [
-			"bcrypt"
-		]
-	}
+  "name": "the-menufy-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node --watch src/server.js",
+    "seed": "node src/config/seeds/seeder.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "_moduleAliases": {
+    "@": "src",
+    "@config": "src/config",
+    "@modules": "src/modules",
+    "@middlewares": "src/middlewares",
+    "@models": "src/models",
+    "@utils": "src/utils"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.8.1",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-handlebars": "^8.0.1",
+    "express-list-endpoints": "^7.1.1",
+    "google-auth-library": "^9.15.1",
+    "jsonwebtoken": "^9.0.2",
+    "module-alias": "^2.2.3",
+    "mongoose": "^8.10.1",
+    "nodemailer": "^6.10.0",
+    "nodemailer-express-handlebars": "^7.0.0",
+    "yup": "^1.6.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "bcrypt"
+    ]
+  }
 }
