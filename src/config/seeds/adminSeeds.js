@@ -1,3 +1,5 @@
+const { restaurant1Id, restaurant2Id } = require("./restaurantSeeds");
+
 const admins = [
   {
     firstName: "Admin",
@@ -10,6 +12,7 @@ const admins = [
     role: "admin",
     isEmailVerified: true,
     authProvider: "local",
+    restaurant: restaurant1Id,
     verifiedDevices: ["admin_device_1"],
   },
   {
@@ -22,6 +25,7 @@ const admins = [
     birthday: "1988-06-15",
     role: "admin",
     isEmailVerified: true,
+    restaurant: restaurant2Id,
     authProvider: "local",
     verifiedDevices: ["admin_device_2"],
   },
