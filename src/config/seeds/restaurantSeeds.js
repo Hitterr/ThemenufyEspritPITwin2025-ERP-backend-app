@@ -1,5 +1,12 @@
+const { default: mongoose } = require("mongoose");
+
+const restaurant1Id = new mongoose.Types.ObjectId();
+const restaurant2Id = new mongoose.Types.ObjectId();
+const restaurant3Id = new mongoose.Types.ObjectId();
+
 const restaurants = [
   {
+    _id: restaurant1Id,
     nameRes: "Le Petit Bistro",
     address: "789 Rue Saint-Denis, Montreal, QC",
     cuisineType: "French",
@@ -11,10 +18,11 @@ const restaurants = [
     payCashMethod: true,
     images: [
       "https://example.com/images/bistro1.jpg",
-      "https://example.com/images/bistro2.jpg"
-    ]
+      "https://example.com/images/bistro2.jpg",
+    ],
   },
   {
+    _id: restaurant2Id,
     nameRes: "Sushi Master",
     address: "123 Rue Sainte-Catherine, Montreal, QC",
     cuisineType: "Japanese",
@@ -26,10 +34,11 @@ const restaurants = [
     payCashMethod: true,
     images: [
       "https://example.com/images/sushi1.jpg",
-      "https://example.com/images/sushi2.jpg"
-    ]
+      "https://example.com/images/sushi2.jpg",
+    ],
   },
   {
+    _id: restaurant3Id,
     nameRes: "Pizza Paradise",
     address: "456 Boulevard Saint-Laurent, Montreal, QC",
     cuisineType: "Italian",
@@ -41,9 +50,14 @@ const restaurants = [
     payCashMethod: true,
     images: [
       "https://example.com/images/pizza1.jpg",
-      "https://example.com/images/pizza2.jpg"
-    ]
-  }
+      "https://example.com/images/pizza2.jpg",
+    ],
+  },
 ];
 
-module.exports = restaurants;
+module.exports = {
+  restaurants,
+  restaurant1Id,
+  restaurant2Id,
+  restaurant3Id,
+};
