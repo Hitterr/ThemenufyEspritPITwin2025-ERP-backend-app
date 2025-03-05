@@ -14,11 +14,13 @@ class UserService {
     return userWithoutPassword;
   }
   async getAllUsers() {
-    const users = await User.find({}, { password: 0 });
+    const users = await User.find({}, { password: 0 }).populate(["restaurant"]);
     return users;
   }
   async getUserById(id) {
-    const user = await User.findById(id, { password: 0 });
+    const user = await User.findById(id, { password: 0 }).populate([
+      "restaurant",
+    ]);
     return user;
   }
   async updateUser(id, updateData) {
@@ -29,15 +31,15 @@ class UserService {
       id,
       { $set: updateData },
       { new: true, select: "-password" }
-    );
+    ).populate(["restaurant"]);
     return user;
   }
   async deleteUser(id) {
-    const result = await User.findByIdAndDelete(id);
+    const result = await User.findByIdAndDelete(id).populate(["restaurant"]);
     return result;
   }
   async getUserByEmail(email) {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).populate(["restaurant"]);
     return user;
   }
 }
