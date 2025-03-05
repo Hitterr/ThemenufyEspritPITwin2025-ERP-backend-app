@@ -24,6 +24,7 @@ app.use("/api/user", require("@modules/user/routes"));
 app.use("/api/employee", require("@modules/employee"));
 app.use("/api/superadmins", require("@modules/superAdmin"));
 app.use("/api/restaurant", require("@modules/restaurant"));
+app.use("/api/admin", require("@modules/admin"));
 
 // Start server
 app.listen(PORT, () => {

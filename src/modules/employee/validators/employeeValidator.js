@@ -6,7 +6,7 @@ const employeeSchema = userSchema.shape({
     .number()
     .positive("Salary must be positive")
     .required("Salary is required"),
-  restaurantFK: yup.string().required("Restaurant ID is required"),
+  restaurant: yup.string().required("Restaurant ID is required"),
 });
 
 module.exports = {
