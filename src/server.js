@@ -45,12 +45,17 @@ const logAvailableRoutes = () => {
     });
   });
   // Display routes by module
-  console.log("\n📍 API Routes by Module:");
-  Object.keys(moduleRoutes).forEach((module) => {
-    console.log(`\n🔹 ${module.toUpperCase()} Module:`);
-    moduleRoutes[module].forEach((route) => {
-      console.log(`\t⚡${route.method} http://localhost:${PORT}${route.path}`);
+  setInterval(() => {
+    console.clear();
+    console.log("\n📍 API Routes by Module:");
+    Object.keys(moduleRoutes).forEach((module) => {
+      console.log(`\n🔹 ${module.toUpperCase()} Module:`);
+      moduleRoutes[module].forEach((route) => {
+        console.log(
+          `\t⚡${route.method} http://localhost:${PORT}${route.path}`
+        );
+      });
     });
-  });
+  }, 5000);
 };
 module.exports = app;
