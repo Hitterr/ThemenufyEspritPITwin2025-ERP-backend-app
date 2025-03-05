@@ -14,7 +14,7 @@ const userSchema = yup.object({
     .min(6, "Password must be at least 6 characters")
     .required("Password is required"),
   image: yup.string().nullable(),
-  phone: yup.number().nullable(),
+  phone: yup.string().nullable(),
   address: yup.string().nullable(),
   birthday: yup.string().nullable(),
   role: yup
