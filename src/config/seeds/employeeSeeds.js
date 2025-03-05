@@ -1,5 +1,9 @@
-const { restaurant1Id, restaurant2Id, restaurant3Id } = require('./restaurantSeeds');
-const mongoose = require('mongoose');
+const {
+  restaurant1Id,
+  restaurant2Id,
+  restaurant3Id,
+} = require("./restaurantSeeds");
+const mongoose = require("mongoose");
 
 const employee1Id = new mongoose.Types.ObjectId();
 const employee2Id = new mongoose.Types.ObjectId();
@@ -19,7 +23,7 @@ const employees = [
     isEmailVerified: true,
     authProvider: "local",
     salary: 45000,
-    restaurantFK: restaurant1Id
+    restaurant: restaurant1Id,
   },
   {
     _id: employee2Id,
@@ -34,7 +38,7 @@ const employees = [
     isEmailVerified: true,
     authProvider: "local",
     salary: 48000,
-    restaurantFK: restaurant2Id
+    restaurant: restaurant2Id,
   },
   {
     _id: employee3Id,
@@ -49,13 +53,13 @@ const employees = [
     isEmailVerified: true,
     authProvider: "local",
     salary: 52000,
-    restaurantFK: restaurant3Id
-  }
+    restaurant: restaurant3Id,
+  },
 ];
 
 module.exports = {
   employees,
   employee1Id,
   employee2Id,
-  employee3Id
+  employee3Id,
 };
