@@ -24,6 +24,7 @@ app.use("/api/user", require("@modules/user/routes"));
 app.use("/api/employee", require("@modules/employee"));
 app.use("/api/superadmins", require("@modules/superAdmin"));
 app.use("/api/restaurant", require("@modules/restaurant"));
+app.use("/api/admin", require("@modules/admin"));
 
 // Start server
 app.listen(PORT, () => {
@@ -45,17 +46,14 @@ const logAvailableRoutes = () => {
     });
   });
   // Display routes by module
-  setInterval(() => {
-    console.clear();
-    console.log("\n📍 API Routes by Module:");
-    Object.keys(moduleRoutes).forEach((module) => {
-      console.log(`\n🔹 ${module.toUpperCase()} Module:`);
-      moduleRoutes[module].forEach((route) => {
-        console.log(
-          `\t⚡${route.method} http://localhost:${PORT}${route.path}`
-        );
-      });
+
+  console.clear();
+  console.log("\n📍 API Routes by Module:");
+  Object.keys(moduleRoutes).forEach((module) => {
+    console.log(`\n🔹 ${module.toUpperCase()} Module:`);
+    moduleRoutes[module].forEach((route) => {
+      console.log(`\t⚡${route.method} http://localhost:${PORT}${route.path}`);
     });
-  }, 5000);
+  });
 };
 module.exports = app;

@@ -7,7 +7,7 @@ const employeeSchema = new mongoose.Schema({
     required: true,
     min: 0,
   },
-  restaurantFK: {
+  restaurant: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Restaurant",
     required: true,
