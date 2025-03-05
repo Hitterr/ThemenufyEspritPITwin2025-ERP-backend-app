@@ -9,8 +9,8 @@ const SuperAdmin = require("../../models/superAdmin");
 // Import seed data
 const users = require("./userSeeds");
 const admins = require("./adminSeeds");
-const employees = require("./employeeSeeds");
-const restaurants = require("./restaurantSeeds");
+const { employees } = require("./employeeSeeds");
+const { restaurants } = require("./restaurantSeeds");
 const superAdmins = require("./superAdminSeeds");
 const { hashPassword } = require("../../utils/hash");
 
@@ -68,7 +68,7 @@ const seedDatabase = async () => {
       employees.map(async (employee, index) => ({
         ...employee,
         password: await hashPassword(employee.password),
-        restaurantFK: createdRestaurants[index % createdRestaurants.length]._id
+        restaurantFK: createdRestaurants[index % createdRestaurants.length]._id,
       }))
     );
 
