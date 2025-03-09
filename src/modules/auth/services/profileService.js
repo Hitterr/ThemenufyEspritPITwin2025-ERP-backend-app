@@ -1,5 +1,6 @@
 const User = require("../../../models/user");
 const jwt = require("jsonwebtoken");
+
 class ProfileService {
   async updateProfile(userId, updateData) {
     try {
@@ -23,6 +24,27 @@ class ProfileService {
       if (error.name === "TokenExpiredError") {
         throw new Error("Token expired");
       }
+      throw error;
+    }
+  }
+  
+  async updatePassword(userId, { currentPassword, newPassword }) {
+    try {
+      const user = await User.findById(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      const isPasswordValid = await user.comparePassword(currentPassword);
+      if (!isPasswordValid) {
+        throw new Error('Current password is incorrect');
+      }
+
+      user.password = newPassword;
+      await user.save();
+
+      return { success: true };
+    } catch (error) {
       throw error;
     }
   }
