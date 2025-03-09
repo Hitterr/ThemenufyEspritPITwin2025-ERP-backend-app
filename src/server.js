@@ -10,11 +10,11 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 // Middleware
 app.use(
-	cors({
-		origin: "http://localhost:5173", // Allow only this origin
-		methods: ["GET", "POST", "PUT", "DELETE"], // Allow specific methods
-		credentials: true, // Allow cookies
-	})
+  cors({
+    origin: "http://localhost:5173", // Allow only this origin
+    methods: ["GET", "POST", "PUT", "DELETE"], // Allow specific methods
+    credentials: true, // Allow cookies
+  })
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

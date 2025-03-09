@@ -1,72 +1,115 @@
-    const User = require("../models/user");
-    const { sendVerifResetPassword } = require("../../../utils/mailing");
-    const userService = require("./userService");
-    const { generateAccessToken, verifyAccessToken } = require("../../../utils/jwt");
-    const { hashPassword } = require("../../../utils/hash");
+const crypto = require("crypto");
+const User = require("../models/user");
+const { sendVerifResetPassword } = require("../../../utils/mailing");
+const { hashPassword } = require("../../../utils/hash");
 
-    class ResetPasswordService {
-        // Step 1: Request Password Reset
-        async requestPasswordReset(email) {
-            try {
-                const user = await userService.getUserByEmail(email);
-                if (!user) {
-                    throw new Error("User not found.");
-                }
+exports.requestPasswordReset = async (user) => {
+  try {
+    const verificationCode = crypto.randomBytes(3).toString("hex");
+    const resetCodeExpires = new Date(Date.now() + 15 * 60 * 1000);
 
-                // Generate reset token (expires in 1 hour)
-                const resetToken = generateAccessToken(
-                    { userId: user._id, email: user.email },
-                    "1h" // Token expires in 1 hour
-                );
-
-                // Store token temporarily in the database (optional, useful for validation)
-                user.resetPasswordToken = resetToken;
-                user.resetPasswordExpires = Date.now() + 3600000; // 1 hour expiration
-                await user.save();
-
-                // Send password reset email
-                const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-                await sendVerifResetPassword(user.email, resetLink);
-
-                return { message: "Password reset link sent successfully!" };
-            } catch (error) {
-                throw new Error(`Error in requestPasswordReset: ${error.message}`);
-            }
-        }
-
-        // Step 2: Reset Password
-        async resetPassword(token, newPassword) {
-            try {
-                const decoded = verifyAccessToken(token);
-                const user = await User.findById(decoded.userId);
-
-                if (!user) {
-                    throw new Error("Invalid or expired token.");
-                }
-
-                // Optional: Check if the token matches the stored one
-                if (!user.resetPasswordToken || user.resetPasswordToken !== token) {
-                    throw new Error("Invalid or expired token.");
-                }
-
-                // Check if token is expired
-                if (user.resetPasswordExpires < Date.now()) {
-                    throw new Error("Reset token has expired. Please request a new one.");
-                }
-
-                // Hash new password
-                user.password = await hashPassword(newPassword);
-
-                // Clear reset token fields after successful reset
-                user.resetPasswordToken = undefined;
-                user.resetPasswordExpires = undefined;
-                await user.save();
-
-                return { message: "Password reset successfully!" };
-            } catch (error) {
-                throw new Error(`Error in resetPassword: ${error.message}`);
-            }
-        }
+    const emailSent = await sendVerifResetPassword(
+      user.email,
+      verificationCode
+    );
+    if (!emailSent) {
+      throw new Error("Failed to send the verification email");
     }
 
-    module.exports = new ResetPasswordService();
+    // Update nested fields
+    user.forgotPasswordVerif = {
+      ...user.forgotPasswordVerif, // Preserve other fields if they exist
+      resetCode: verificationCode,
+      resetCodeExpires: resetCodeExpires,
+    };
+    await user.save();
+
+    return {
+      success: true,
+      message: "A verification code has been sent to your email",
+    };
+  } catch (error) {
+    console.error("Error in requestPasswordReset service:", error);
+    throw error;
+  }
+};
+
+exports.verifyCode = async (email, resetCode) => {
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return { success: false, message: "User not found" };
+    }
+
+    // Access nested resetCode
+    if (user.forgotPasswordVerif.resetCode !== resetCode) {
+      return { success: false, message: "Invalid verification code" };
+    }
+
+    // Access nested resetCodeExpires
+    if (new Date() > user.forgotPasswordVerif.resetCodeExpires) {
+      return { success: false, message: "Verification code has expired" };
+    }
+
+    return { success: true, message: "Code verified successfully" };
+  } catch (error) {
+    console.error("Error in verifyCode service:", error);
+    throw new Error("Error verifying code");
+  }
+};
+
+exports.resetPassword = async (email, resetCode, newPassword) => {
+  try {
+    console.log("Resetting password for:", email);
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.log("User not found for email:", email);
+      return { success: false, message: "User not found" };
+    }
+
+    // Access nested fields
+    console.log(
+      "Current resetCode in DB:",
+      user.forgotPasswordVerif.resetCode,
+      "Provided:",
+      resetCode
+    );
+    if (user.forgotPasswordVerif.resetCode !== resetCode) {
+      console.log("Invalid reset code");
+      return { success: false, message: "Invalid verification code" };
+    }
+
+    console.log(
+      "Expiration check:",
+      new Date(),
+      "vs",
+      user.forgotPasswordVerif.resetCodeExpires
+    );
+    if (new Date() > user.forgotPasswordVerif.resetCodeExpires) {
+      console.log("Code expired");
+      return { success: false, message: "Verification code has expired" };
+    }
+
+    console.log("Password before reset:", user.password);
+    const hashedPassword = await hashPassword(newPassword);
+    console.log("New hashed password (after reset):", hashedPassword);
+
+    user.password = hashedPassword;
+    // Clear nested verification fields
+    user.forgotPasswordVerif.resetCode = null;
+    user.forgotPasswordVerif.resetCodeExpires = null;
+    console.log("User before save:", user);
+
+    await user.save();
+    console.log("User saved successfully");
+
+    // Verify the save
+    const updatedUser = await User.findOne({ email });
+    console.log("User after save (from DB):", updatedUser);
+
+    return { success: true, message: "Password has been successfully reset" };
+  } catch (error) {
+    console.error("Error in resetPassword service:", error);
+    throw new Error("Error resetting the password");
+  }
+};
