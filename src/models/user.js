@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+
 const userSchema = new Schema(
   {
     firstName: {
@@ -12,7 +13,6 @@ const userSchema = new Schema(
       required: true,
       trim: true,
     },
-    // Removing the existing name field as it's split into firstName and lastName
     email: {
       type: String,
       required: true,
@@ -47,7 +47,6 @@ const userSchema = new Schema(
       enum: ["admin", "superadmin", "employee", "client"],
       default: "admin",
     },
-
     isEmailVerified: {
       type: Boolean,
       default: false,
@@ -58,6 +57,14 @@ const userSchema = new Schema(
       default: "local",
     },
     verifiedDevices: [{ type: String }],
+    verificationCode: { // Nouveau champ pour le code de vérification
+      type: String,
+      default: null,
+    },
+    verificationCodeExpires: { // Nouveau champ pour l'expiration du code
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );
