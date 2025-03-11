@@ -89,48 +89,78 @@ class SignupController {
     }
 
     verifyEmail = async (req, res) => {
-        try {
-            const { userId, verificationCode } = req.body;
+    try {
+        const { email, verificationCode } = req.body;
 
-            const user = await User.findById(userId);
-            if (!user) {
-                return res.status(404).json({ success: false, message: "Utilisateur non trouvé." });
-            }
-
-            if (user.isEmailVerified) {
-                return res.status(400).json({ success: false, message: "Email déjà vérifié." });
-            }
-
-            if (user.verificationCode !== verificationCode) {
-                return res.status(400).json({ success: false, message: "Code de vérification invalide." });
-            }
-
-            if (user.verificationCodeExpires < new Date()) {
-                return res.status(400).json({ success: false, message: "Code de vérification expiré." });
-            }
-
-            user.isEmailVerified = true;
-            user.verificationCode = null;
-            user.verificationCodeExpires = null;
-
-            const accessToken = generateAccessToken({ email: user.email });
-            const refreshToken = generateRefreshToken({ email: user.email });
-
-            await user.save();
-
-            return res.status(200).json({
-                success: true,
-                message: "Email vérifié avec succès.",
-                data: {
-                    accessToken,
-                    refreshToken
-                }
+        // Vérification de la présence des champs requis
+        if (!email || !verificationCode) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Email et code de vérification sont requis." 
             });
-        } catch (error) {
-            console.error("Erreur lors de la vérification :", error);
-            return res.status(500).json({ success: false, message: "Erreur lors de la vérification de l'email." });
         }
+
+        // Recherche de l'utilisateur par email
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "Utilisateur non trouvé avec cet email." 
+            });
+        }
+
+        // Vérification si l'email est déjà vérifié
+        if (user.isEmailVerified) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Email déjà vérifié." 
+            });
+        }
+
+        // Vérification du code de vérification
+        if (user.verificationCode !== verificationCode) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Code de vérification invalide." 
+            });
+        }
+
+        // Vérification de l'expiration du code
+        if (user.verificationCodeExpires < new Date()) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Code de vérification expiré." 
+            });
+        }
+
+        // Mise à jour de l'utilisateur
+        user.isEmailVerified = true;
+        user.verificationCode = null;
+        user.verificationCodeExpires = null;
+
+        // Génération des tokens
+        const accessToken = generateAccessToken({ email: user.email });
+        const refreshToken = generateRefreshToken({ email: user.email });
+
+        // Sauvegarde des modifications
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Email vérifié avec succès.",
+            data: {
+                accessToken,
+                refreshToken
+            }
+        });
+    } catch (error) {
+        console.error("Erreur lors de la vérification :", error);
+        return res.status(500).json({ 
+            success: false, 
+            message: "Erreur lors de la vérification de l'email." 
+        });
     }
+};
 }
 
 module.exports = new SignupController();
