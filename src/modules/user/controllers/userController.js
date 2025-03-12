@@ -1,103 +1,46 @@
-const { userService } = require("../../auth/services");
-const { userSchema } = require("../validators/userValidator");
-const yup = require("yup");
-class UserController {
-  async createUser(req, res) {
-    try {
-      await userSchema.validate(req.body, { abortEarly: false });
-      const result = await userService.createUser(req.body);
-      return res.status(201).json({
-        success: true,
-        data: result,
-      });
-    } catch (error) {
-      if (error instanceof yup.ValidationError) {
-        return res.status(400).json({
-          success: false,
-          message: "Validation error",
-          errors: error.errors,
-        });
-      }
-      return res.status(500).json({
-        success: false,
-        message: error.message || "Error creating user",
-      });
-    }
+const userService = require("../services/userService");
+
+exports.createUser = async (req, res) => {
+  try {
+    const user = await userService.createUser(req.body);
+    res.status(201).json(user);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
-  async getAllUsers(req, res) {
-    try {
-      const users = await userService.getAllUsers();
-      return res.status(200).json({
-        success: true,
-        data: users,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message || "Error fetching users",
-      });
-    }
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await userService.getAllUsers();
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-  async getUserById(req, res) {
-    try {
-      const user = await userService.getUserById(req.params.id);
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "User not found",
-        });
-      }
-      return res.status(200).json({
-        success: true,
-        data: user,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message || "Error fetching user",
-      });
-    }
+};
+
+exports.getUserById = async (req, res) => {
+  try {
+    const user = await userService.getUserById(req.params.id);
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(404).json({ error: error.message });
   }
-  async updateUser(req, res) {
-    try {
-      await userSchema.validate(req.body, { abortEarly: false });
-      const updatedUser = await userService.updateUser(req.params.id, req.body);
-      if (!updatedUser) {
-        return res.status(404).json({
-          success: false,
-          message: "User not found",
-        });
-      }
-      return res.status(200).json({
-        success: true,
-        data: updatedUser,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message || "Error updating user",
-      });
-    }
+};
+
+exports.updateUser = async (req, res) => {
+  try {
+    const user = await userService.updateUser(req.params.id, req.body);
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(404).json({ error: error.message });
   }
-  async deleteUser(req, res) {
-    try {
-      const result = await userService.deleteUser(req.params.id);
-      if (!result) {
-        return res.status(404).json({
-          success: false,
-          message: "User not found",
-        });
-      }
-      return res.status(200).json({
-        success: true,
-        message: "User deleted successfully",
-      });
-    } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message || "Error deleting user",
-      });
-    }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const result = await userService.deleteUser(req.params.id);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(404).json({ error: error.message });
   }
-}
-module.exports = new UserController();
+};

@@ -6,6 +6,8 @@ const listEndpoints = require("express-list-endpoints");
 const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+
 // Connect to MongoDB
 connectDB();
 // Middleware
@@ -43,6 +45,16 @@ const logAvailableRoutes = () => {
       path: route.path,
     });
   });
+
+  //connect to frontend 
+app.use(
+  cors({
+    origin: "http://localhost:5173", // URL frontend
+    methods: ["GET", "POST", "PUT", "DELETE"], // Méthodes HTTP autorisées
+    credentials: true, 
+  })
+);
+
   // Display routes by module
   console.log("\n📍 API Routes by Module:");
   Object.keys(moduleRoutes).forEach((module) => {
