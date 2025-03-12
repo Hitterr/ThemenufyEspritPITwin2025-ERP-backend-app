@@ -24,6 +24,8 @@ const updateProfile = async (req, res) => {
 
 const updatePassword = async (req, res) => {
   try {
+    console.log("🔍 Password update request received:", req.body);
+
     const { userId } = req.user;
     const { currentPassword, newPassword } = req.body;
 
@@ -51,10 +53,8 @@ const updatePassword = async (req, res) => {
       message: "Password updated successfully",
     });
   } catch (error) {
-    res.status(400).json({ 
-      success: false, 
-      message: error.message 
-    });
+    console.error("Backend error:", error);
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 

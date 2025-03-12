@@ -8,6 +8,6 @@ const { verifyToken } = require("../../../middlewares/authMiddleware");
 
 // Update user profile
 router.put("/", verifyToken, profileController.updateProfile);
-router.put("/profile/password", verifyToken, profileController.updatePassword);
+router.put("/password", verifyToken, profileController.updatePassword);
 
 module.exports = router;
