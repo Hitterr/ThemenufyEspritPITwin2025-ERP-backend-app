@@ -6,8 +6,6 @@ const listEndpoints = require("express-list-endpoints");
 const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 5000;
-
-
 // Connect to MongoDB
 connectDB();
 // Middleware
@@ -24,7 +22,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", require("@modules/auth/routes"));
 app.use("/api/user", require("@modules/user/routes"));
 app.use("/api/employee", require("@modules/employee"));
-app.use("/api/superadmins", require("@modules/superAdmin/routes/superadminRoutes"));
+app.use("/api/superadmins", require("@modules/superAdmin"));
+app.use("/api/restaurant", require("@modules/restaurant"));
+app.use("/api/admin", require("@modules/admin"));
 
 // Start server
 app.listen(PORT, () => {
@@ -45,17 +45,9 @@ const logAvailableRoutes = () => {
       path: route.path,
     });
   });
-
-  //connect to frontend 
-app.use(
-  cors({
-    origin: "http://localhost:5173", // URL frontend
-    methods: ["GET", "POST", "PUT", "DELETE"], // Méthodes HTTP autorisées
-    credentials: true, 
-  })
-);
-
   // Display routes by module
+
+  console.clear();
   console.log("\n📍 API Routes by Module:");
   Object.keys(moduleRoutes).forEach((module) => {
     console.log(`\n🔹 ${module.toUpperCase()} Module:`);
@@ -64,3 +56,4 @@ app.use(
     });
   });
 };
+module.exports = app;

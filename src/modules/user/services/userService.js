@@ -1,56 +1,46 @@
-const User = require("../../../models/user"); // Assurez-vous que le chemin est correct
+const { hashPassword } = require("../../../utils/hash");
+const User = require("../../../models/user");
 const bcrypt = require("bcrypt");
-
 class UserService {
-  async createUser(data) {
-    const { name, email, password, role, authProvider } = data;
-
-    // Vérifier si l'utilisateur existe déjà
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      throw new Error("User already exists");
-    }
-
-    // Hacher le mot de passe avant de l'enregistrer
-    const hashedPassword = await bcrypt.hash(password, 10);
+  async createUser(userData) {
+    const { password, ...otherData } = userData;
+    const hashedPassword = await hashPassword(password);
     const user = new User({
-      name,
-      email,
+      ...otherData,
       password: hashedPassword,
-      role,
-      authProvider: authProvider || "local",
     });
-
-    return await user.save();
+    await user.save();
+    const { password: _, ...userWithoutPassword } = user.toObject();
+    return userWithoutPassword;
   }
-
   async getAllUsers() {
-    return await User.find();
+    const users = await User.find({}, { password: 0 }).populate(["restaurant"]);
+    return users;
   }
-
-  async getUserById(userId) {
-    const user = await User.findById(userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
+  async getUserById(id) {
+    const user = await User.findById(id, { password: 0 }).populate([
+      "restaurant",
+    ]);
     return user;
   }
-
-  async updateUser(userId, updateData) {
-    const user = await User.findByIdAndUpdate(userId, updateData, { new: true });
-    if (!user) {
-      throw new Error("User not found");
+  async updateUser(id, updateData) {
+    if (updateData.password) {
+      updateData.password = await hashPassword(updateData.password);
     }
+    const user = await User.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true, select: "-password" }
+    ).populate(["restaurant"]);
     return user;
   }
-
-  async deleteUser(userId) {
-    const user = await User.findByIdAndDelete(userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
-    return { message: "User deleted successfully" };
+  async deleteUser(id) {
+    const result = await User.findByIdAndDelete(id).populate(["restaurant"]);
+    return result;
+  }
+  async getUserByEmail(email) {
+    const user = await User.findOne({ email }).populate(["restaurant"]);
+    return user;
   }
 }
-
 module.exports = new UserService();
