@@ -23,6 +23,14 @@ const SuperAdminSchema = new Schema(
       type: String,
       enum: ["local", "google", "facebook"],
       default: "local",
+    }, 
+    blocked: {
+      type: Boolean,
+      default: false, 
+    },
+    archived: {
+      type: Boolean,
+      default: false,
     },
     verifiedDevices: [{ type: String }],
   },
