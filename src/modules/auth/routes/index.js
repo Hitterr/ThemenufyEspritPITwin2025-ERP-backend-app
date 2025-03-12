@@ -1,9 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const loginRoutes = require("./loginRoutes");
-const userRoutes = require("./userRoutes");
 const resetRoutes=require("./resetPasswordRoutes")
-router.use("/login", loginRoutes);
-router.use("/users", userRoutes);
+const deviceRoutes = require("./deviceRoutes");
+const signupRoutes = require("./signupRoutes");
+const profileRoutes = require("./profileRoutes");
 router.use("/reset-password",resetRoutes)
+router.use("/login", loginRoutes);
+router.use("/devices", deviceRoutes);
+router.use("/signup", signupRoutes);
+router.use("/profile", profileRoutes);
 module.exports = router;

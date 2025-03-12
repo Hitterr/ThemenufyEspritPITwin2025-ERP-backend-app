@@ -1,8 +1,10 @@
 const loginService = require("./loginService");
-const userService = require("./userService");
 const resetPasswordService=require("./resetPasswordService")
+const deviceService = require("./deviceService");
+const profileService = require("./profileService");
 module.exports = {
     loginService,
-    userService,
     resetPasswordService,
+  deviceService,
+  profileService,
 };

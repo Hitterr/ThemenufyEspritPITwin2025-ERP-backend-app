@@ -1,9 +1,9 @@
-const User = require("../models/user");
+const User = require("../../../models/user");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const { comparePassword, hashPassword } = require("../../../utils/hash");
 const { sendVerificationEmail } = require("../../../utils/mailing");
-const userService = require("./userService");
+const userService = require("../../user/services/userService");
 class LoginService {
 	// Helper method to check device and send verification if needed
 	async verifyDevice(user, deviceId) {
@@ -22,8 +22,8 @@ class LoginService {
 				{ expiresIn: "1h" }
 			);
 			// TODO: Send verification email with the token
-			const verificationLink = `${process.env.BASE_URL}/api/auth/login/verify-device/${verificationToken}`;
-			await sendVerificationEmail("liwopo2999@arinuse.com", verificationLink);
+			const verificationLink = `${process.env.FRONTEND_URL}/verify-device/${verificationToken}`;
+			await sendVerificationEmail(process.env.TEMP_MAIL, verificationLink);
 			return false;
 		}
 		return true;
@@ -49,7 +49,7 @@ class LoginService {
 				};
 			}
 			const token = jwt.sign(
-				{ userId: user._id, email: user.email },
+				{ userId: user._id, email: user.email, deviceId },
 				process.env.JWT_SECRET,
 				{ expiresIn: "24h" }
 			);
@@ -57,6 +57,7 @@ class LoginService {
 			return {
 				token,
 				user,
+				deviceId,
 			};
 		} catch (error) {
 			throw error;
@@ -65,41 +66,61 @@ class LoginService {
 	// Google login
 	async loginWithGoogle(tokenId, deviceId) {
 		try {
-			const decodedToken = jwt.decode(tokenId);
-			const { email, name, picture, jti } = decodedToken;
+			// Step 1: Fetch Google profile data using Axios
+			const response = await axios.get(
+				"https://www.googleapis.com/oauth2/v3/userinfo",
+				{
+					headers: {
+						Authorization: `Bearer ${tokenId}`,
+					},
+				}
+			);
+			const profileData = response.data;
+			console.log(
+				"🔍 ~ loginWithGoogle ~ src/modules/auth/services/loginService.js:70 ~ profileData:",
+				profileData
+			);
+			const { email, given_name, family_name, picture, sub } = profileData;
+			// Step 2: Check if the user exists in the database
 			let user = await userService.getUserByEmail(email);
 			if (!user) {
-				const hashedPassword = await hashPassword(jti);
+				// If the user doesn't exist, create a new user
+				const hashedPassword = await hashPassword(sub); // Use `sub` (unique identifier) as the password seed
 				user = await User.create({
 					email,
-					name,
+					firstName: given_name,
+					lastName: family_name,
 					password: hashedPassword,
-					profilePicture: picture,
+					image: picture,
 					authProvider: "google",
 					isEmailVerified: true,
 					verifiedDevices: [], // Initialize empty devices array
 				});
 			}
-			// Verify device
+			// Step 3: Verify the device
 			const status = await this.verifyDevice(user, deviceId);
 			if (!status) {
 				return {
 					status: false,
 					message:
-						"Please verify your device to login! We sent you an email with a verification link. ",
+						"Please verify your device to login! We sent you an email with a verification link.",
 				};
 			}
+			// Step 4: Generate a JWT token for the user
 			const token = jwt.sign(
-				{ userId: user._id, email: user.email },
+				{ userId: user._id, email: user.email, deviceId },
 				process.env.JWT_SECRET,
 				{ expiresIn: "24h" }
 			);
+			// Remove sensitive data before returning the user object
 			delete user.password;
 			return {
 				token,
 				user,
+				deviceId,
 			};
 		} catch (error) {
+			console.error("Error during Google authentication:", error);
 			throw new Error("Google authentication failed");
 		}
 	}
@@ -119,6 +140,7 @@ class LoginService {
 			return {
 				token: verificationToken,
 				user,
+				deviceId: decoded.deviceId,
 			};
 		} catch (error) {
 			if (error.name === "JsonWebTokenError") {
@@ -135,16 +157,17 @@ class LoginService {
 		try {
 			// Verify Facebook access token and get user data
 			const response = await axios.get(
-				`https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`
+				`https://graph.facebook.com/me?fields=id,first_name,last_name,email&access_token=${accessToken}`
 			);
-			const { email, name, id } = response.data;
+			const { email, first_name, last_name, id } = response.data;
 			let user = await userService.getUserByEmail(email);
 			if (!user) {
 				// Create new user if doesn't exist
 				const hashedPassword = await hashPassword(id);
 				user = await User.create({
 					email,
-					name,
+					firstName: first_name,
+					lastName: last_name,
 					password: hashedPassword,
 					authProvider: "facebook",
 					isEmailVerified: true,
@@ -160,7 +183,7 @@ class LoginService {
 				};
 			}
 			const token = jwt.sign(
-				{ userId: user._id, email: user.email },
+				{ userId: user._id, email: user.email, deviceId },
 				process.env.JWT_SECRET,
 				{ expiresIn: "24h" }
 			);
@@ -168,6 +191,7 @@ class LoginService {
 			return {
 				token,
 				user,
+				deviceId,
 			};
 		} catch (error) {
 			console.log("📢 [loginService.js:173]", error);
@@ -195,6 +219,26 @@ class LoginService {
 			if (error.name === "TokenExpiredError") {
 				throw new Error("Verification token has expired");
 			}
+			throw error;
+		}
+	}
+	// Profile
+	async getProfile(userId, deviceId) {
+		try {
+			const user = await userService.getUserById(userId);
+			if (!user) {
+				throw new Error("User not found");
+			}
+			if (!user.verifiedDevices.includes(deviceId)) {
+				throw new Error("Device not verified");
+			}
+			const token = jwt.sign(
+				{ userId: user._id, email: user.email, deviceId },
+				process.env.JWT_SECRET,
+				{ expiresIn: "24h" }
+			);
+			return { token, user, deviceId };
+		} catch (error) {
 			throw error;
 		}
 	}

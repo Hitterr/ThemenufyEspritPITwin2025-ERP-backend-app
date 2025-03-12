@@ -1,7 +1,6 @@
 const nodemailer = require("nodemailer");
 const verificationLinkTemplate = require("./templates/emails/verificationLinkTemplate");
 const resetPasswordTemplate = require("./templates/emails/resetPasswordTemplate");
-
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -9,7 +8,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASSWORD,
   },
 });
-
 const sendVerificationEmail = async (email, verificationLink) => {
   try {
     const mailOptions = {
@@ -25,7 +23,6 @@ const sendVerificationEmail = async (email, verificationLink) => {
     return false;
   }
 };
-
 const sendVerifResetPassword = async (email, verificationCode) => {
   try {
     console.log(`Verification code for ${email}: ${verificationCode}`);
@@ -42,7 +39,6 @@ const sendVerifResetPassword = async (email, verificationCode) => {
     return false;
   }
 };
-
 module.exports = {
   sendVerificationEmail,
   sendVerifResetPassword,

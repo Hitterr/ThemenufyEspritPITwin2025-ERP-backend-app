@@ -1,8 +1,12 @@
 const loginController = require("./loginController");
-const userController = require("./userController");
 const resetPasswordController=require("./resetPasswordController");
+const deviceController = require("./deviceController");
+const signupController = require("./signupController");
+const profileController = require("./profileController");
 module.exports = {
 	loginController,
-	userController,
 	resetPasswordController,
+  deviceController,
+  signupController,
+  profileController,
 };
