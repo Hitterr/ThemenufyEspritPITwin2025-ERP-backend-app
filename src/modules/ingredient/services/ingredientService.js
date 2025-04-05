@@ -1,5 +1,8 @@
 const Ingredient = require("../../../models/ingredient");
-const { emitIngredientAlert } = require("../sockets/socketIngredientService");
+const {
+	emitIngredientAlert,
+	emitIngredientUpdate,
+} = require("../sockets/socketIngredientService");
 class IngredientService {
 	async createIngredient(ingredientData) {
 		const ingredient = new Ingredient(ingredientData);
@@ -18,6 +21,7 @@ class IngredientService {
 			{ $set: updateData },
 			{ new: true }
 		);
+		emitIngredientUpdate(ingredient);
 		return ingredient;
 	}
 	async deleteIngredient(id) {
@@ -36,6 +40,7 @@ class IngredientService {
 			);
 		}
 		await ingredient.save();
+		emitIngredientUpdate(ingredient);
 		return ingredient;
 	}
 	async decreaseQuantity(id, amount) {
@@ -52,6 +57,7 @@ class IngredientService {
 		if (ingredient.quantity <= ingredient.minQty) {
 			emitIngredientAlert(ingredient);
 		}
+		emitIngredientUpdate(ingredient);
 		return ingredient;
 	}
 }

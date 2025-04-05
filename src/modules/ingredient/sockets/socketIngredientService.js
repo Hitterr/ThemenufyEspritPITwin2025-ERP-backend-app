@@ -1,4 +1,5 @@
 const { getIO } = require("../../../config/socket");
+
 const emitIngredientAlert = (ingredient) => {
 	const io = getIO();
 	io.emit("ingredient-alert", {
@@ -6,6 +7,16 @@ const emitIngredientAlert = (ingredient) => {
 		ingredient: ingredient,
 	});
 };
+
+const emitIngredientUpdate = (ingredient) => {
+	const io = getIO();
+	io.emit("ingredient-update", {
+		message: `Ingredient ${ingredient.libelle} has been updated`,
+		ingredient: ingredient,
+	});
+};
+
 module.exports = {
 	emitIngredientAlert,
+	emitIngredientUpdate,
 };

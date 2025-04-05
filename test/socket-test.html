@@ -80,7 +80,23 @@
 				connectionStatus.textContent = "Disconnected";
 				connectionStatus.style.color = "red";
 			});
-			// Listen for ingredient alerts and updates
+			// Listen for ingredient updates
+			socket.on("ingredient-update", (data) => {
+				console.log("Ingredient updated:", data);
+				updateIngredientDisplay(data.ingredient);
+				const alertDiv = document.createElement("div");
+				alertDiv.className = "alert";
+				alertDiv.style.borderColor = "#2196F3";
+				alertDiv.style.backgroundColor = "#E3F2FD";
+				alertDiv.innerHTML = `
+					<strong>Update!</strong><br>
+					${data.message}<br>
+					Ingredient: ${data.ingredient.libelle}<br>
+					Current Quantity: ${data.ingredient.quantity} ${data.ingredient.unit}
+				`;
+				alertContainer.prepend(alertDiv);
+			});
+			// Listen for ingredient alerts
 			socket.on("ingredient-alert", (data) => {
 				const alertDiv = document.createElement("div");
 				alertDiv.className = "alert";
@@ -92,7 +108,7 @@
 					Min Quantity: ${data.ingredient.minQty} ${data.ingredient.unit}
 				`;
 				alertContainer.prepend(alertDiv);
-				updateIngredientDisplay(data.ingredient); // Update the display when alert received
+				updateIngredientDisplay(data.ingredient);
 			});
 			// Function to update ingredient display
 			function updateIngredientDisplay(ingredient) {
