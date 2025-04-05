@@ -22,6 +22,10 @@ class IngredientService {
 			{ new: true }
 		);
 		emitIngredientUpdate(ingredient);
+		// Check if quantity is at or below minQty and emit alert
+		if (ingredient.quantity <= ingredient.minQty) {
+			emitIngredientAlert(ingredient);
+		}
 		return ingredient;
 	}
 	async deleteIngredient(id) {
