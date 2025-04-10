@@ -1,7 +1,7 @@
 {
   "name": "the-menufy-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "1. Clone this repository\r 2. Run\r ```shell\r pnpm i -g pnpm\r pnpm install\r ```\r 3. Run\r ```shell\r pnpm seed\r ```\r 4. Run\r ```shell\r pnpm start\r ```\r 5. Change the `TEMP_MAIL` in `.env` file with your",
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {
@@ -41,5 +41,6 @@
     "onlyBuiltDependencies": [
       "bcrypt"
     ]
-  }
+  },
+  "devDependencies": {}
 }

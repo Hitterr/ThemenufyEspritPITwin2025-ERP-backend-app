@@ -4,12 +4,12 @@ const userSchema = new Schema(
 	{
 		firstName: {
 			type: String,
-			required: true,
+			// required: true,
 			trim: true,
 		},
 		lastName: {
 			type: String,
-			required: true,
+			// required: true,
 			trim: true,
 		},
 		// Removing the existing name field as it's split into firstName and lastName
