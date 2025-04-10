@@ -26,6 +26,8 @@ app.use("/api/superadmins", require("@modules/superAdmin"));
 app.use("/api/restaurant", require("@modules/restaurant"));
 app.use("/api/admin", require("@modules/admin"));
 
+app.use("/api/supplier", require("@modules/supplier"));
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

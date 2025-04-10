@@ -82,27 +82,6 @@ async deleteArchivedSuperAdmin(req, res) {
         res.status(400).json({ success: false, message: error.message });
     }
 }
-
-/*
-  async deleteSuperAdmin(req, res) {
-    try {
-      const { id } = req.params;
-      const response = await superAdminService.deleteSuperAdmin(id);
-      res.status(200).json({ success: true, message: response.message });
-    } catch (error) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  }
-
-  async login(req, res) {
-    try {
-      const { email, password } = req.body;
-      const result = await superAdminService.login(email, password);
-      res.status(200).json({ success: true, data: result });
-    } catch (error) {
-      res.status(401).json({ success: false, message: error.message });
-    }
-  }*/
 }
 
 module.exports = new SuperAdminController();
