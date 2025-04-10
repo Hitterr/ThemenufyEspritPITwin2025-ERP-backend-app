@@ -1,6 +1,7 @@
-const { bulkUpdateSchema } = require("../validators/ingredientValidator");
+const { bulkUpdateSchema } = require("../validators/bulkIngredientValidator");
 const ingredientService = require("../services/ingredientService");
 const yup = require("yup");
+const bulkIngredientService = require("../services/bulkIngredientService");
 
 class BulkUpdateIngredientController {
   async bulkUpdate(req, res) {
@@ -12,7 +13,7 @@ class BulkUpdateIngredientController {
 
       const { ids, update } = req.body;
 
-      const result = await ingredientService.bulkUpdateIngredients(ids, update);
+      const result = await bulkIngredientService.bulkUpdateIngredients(ids, update);
 
       return res.status(200).json({
         success: true,
