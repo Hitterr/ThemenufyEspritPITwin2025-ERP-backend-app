@@ -1,6 +1,7 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+const supplierRoutes = require("./routes/supplierRoute");
 
-router.use('/compare', require('./routes/compareRoute'))
+router.use("/", supplierRoutes);
 
 module.exports = router;

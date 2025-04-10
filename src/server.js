@@ -10,11 +10,11 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 // Middleware
 app.use(
-  cors({
-    origin: "http://localhost:5173", // Allow only this origin
-    methods: ["GET", "POST", "PUT", "DELETE","PATCH"], // Allow specific methods
-    credentials: true, // Allow cookies
-  })
+	cors({
+		origin: "*", // Allow only this origin
+		methods: "*", // Allow specific methods
+		credentials: true, // Allow cookies
+	})
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -26,6 +26,9 @@ app.use("/api/superadmins", require("@modules/superAdmin"));
 app.use("/api/restaurant", require("@modules/restaurant"));
 app.use("/api/admin", require("@modules/admin"));
 app.use("/api/ingredient", require("@modules/ingredient"));
+
+
+app.use("/api/suppliers", require("@modules/supplier"));
 // Start server
 const http = require("http");
 const { initSocket } = require("./config/socket");
@@ -33,8 +36,6 @@ const { initSocket } = require("./config/socket");
 const server = http.createServer(app);
 // Initialize Socket.IO
 initSocket(server);
-
-app.use("/api/supplier", require("@modules/supplier"));
 
 // Start server
 server.listen(PORT, () => {

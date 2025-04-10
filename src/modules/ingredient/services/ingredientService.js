@@ -1,4 +1,4 @@
-const Ingredient = require("../../../models/ingredient");
+const Ingredient = require("../../../models/Ingredient");
 const {
 	emitIngredientAlert,
 	emitIngredientUpdate,
@@ -63,6 +63,6 @@ class IngredientService {
 		}
 		emitIngredientUpdate(ingredient);
 		return ingredient;
-	}
+	}	
 }
 module.exports = new IngredientService();

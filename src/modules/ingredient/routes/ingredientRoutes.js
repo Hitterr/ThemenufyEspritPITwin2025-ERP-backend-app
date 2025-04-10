@@ -13,4 +13,5 @@ router.delete("/:id", ingredientController.deleteIngredient);
 router.patch("/:id/increase", ingredientController.increaseQuantity);
 router.patch("/:id/decrease", ingredientController.decreaseQuantity);
 
+
 module.exports = router;
