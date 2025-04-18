@@ -1,70 +1,67 @@
 const Invoice = require("../../../models/invoice");
-const User = require("../../../models/user");
-const Ingredient = require("../../../models/ingredient");
+const InvoiceItem = require("../../../models/invoiceItem");
 
 class InvoiceService {
-  async createInvoice(userId, items) {
-    try {
-      // Get user details
-      const user = await User.findById(userId);
-      if (!user) {
-        throw new Error("User not found");
-      }
+  async createInvoice({ userId, restaurant, supplier, items }) {
+    const invoice = new Invoice({
+      user: userId,
+      restaurant,
+      supplier,
+      invoiceNumber: Date.now().toString(), // You might want a better number generation logic
+    });
 
-      // Process items and calculate total
-      const invoiceItems = await Promise.all(
-        items.map(async (item) => {
-          const ingredient = await Ingredient.findById(item.ingredientId);
-          if (!ingredient) {
-            throw new Error(`Ingredient not found: ${item.ingredientId}`);
-          }
+    await invoice.save();
 
-          return {
-            ingredient: ingredient._id,
-            quantity: item.quantity,
-            price: ingredient.price,
-            description: item.description,
-          };
-        })
-      );
+    // Create invoice items
+    const itemPromises = items.map((item) =>
+      InvoiceItem.create({
+        invoice: invoice._id,
+        ...item,
+      })
+    );
 
-      const totalAmount = invoiceItems.reduce(
-        (total, item) => total + item.price * item.quantity,
-        0
-      );
+    await Promise.all(itemPromises);
 
-      // Create invoice
-      const invoice = new Invoice({
-        user: userId,
-        items: invoiceItems,
-        totalAmount,
-      });
+    return this.getInvoice(invoice._id);
+  }
 
-      await invoice.save();
-
-      // Populate user and ingredient details
-      return await Invoice.findById(invoice._id)
-        .populate("user", "name email phone")
-        .populate("items.ingredient", "name");
-    } catch (error) {
-      throw error;
-    }
+  async getInvoices() {
+    return Invoice.find()
+      .populate("user", "firstName lastName email")
+      .populate("restaurant")
+      .populate("supplier");
   }
 
   async getInvoice(invoiceId) {
-    try {
-      const invoice = await Invoice.findById(invoiceId)
-        .populate("user", "name email phone")
-        .populate("items.ingredient", "name");
+    const invoice = await Invoice.findById(invoiceId)
+      .populate("user", "firstName lastName email")
+      .populate("restaurant")
+      .populate("supplier");
 
-      if (!invoice) {
-        throw new Error("Invoice not found");
-      }
-
-      return invoice;
-    } catch (error) {
-      throw error;
+    if (!invoice) {
+      throw new Error("Invoice not found");
     }
+
+    const items = await InvoiceItem.find({ invoice: invoiceId }).populate(
+      "ingredient",
+      "libelle price"
+    );
+
+    return { ...invoice.toObject(), items };
+  }
+
+  async updateStatus(invoiceId, status) {
+    const invoice = await Invoice.findByIdAndUpdate(
+      invoiceId,
+      { status },
+      { new: true }
+    );
+
+    if (!invoice) {
+      throw new Error("Invoice not found");
+    }
+
+    return invoice;
   }
 }
 

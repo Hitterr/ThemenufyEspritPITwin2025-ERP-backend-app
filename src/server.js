@@ -27,6 +27,7 @@ app.use("/api/restaurant", require("@modules/restaurant"));
 app.use("/api/admin", require("@modules/admin"));
 app.use("/api/ingredient", require("@modules/ingredient"));
 app.use("/api/invoice", require("@modules/invoice"));
+
 // Start server
 const http = require("http");
 const { initSocket } = require("./config/socket");
