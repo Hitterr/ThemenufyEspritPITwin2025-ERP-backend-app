@@ -1,0 +1,289 @@
+// @modules/supplier/services/supplierService.js
+const mongoose = require("mongoose");
+const Supplier = require("../../../models/supplier");
+const Ingredient = require("../../../models/ingredient");
+const SupplierIngredient = require("../../../models/supplierIngredient");
+const {
+  NotFoundError,
+  ConflictError,
+  ValidationError,
+} = require("../../../utils/errors");
+
+class SupplierService {
+  // Create a new supplier with email uniqueness check
+  static async createSupplier(supplierData) {
+    const existingSupplier = await Supplier.findOne({
+      "contact.email": supplierData.contact.email,
+    });
+
+    if (existingSupplier) {
+      throw new ConflictError("Supplier with this email already exists");
+    }
+
+    if (
+      supplierData.contract?.endDate &&
+      new Date(supplierData.contract.endDate) <
+        new Date(supplierData.contract.startDate)
+    ) {
+      throw new ValidationError("Contract end date must be after start date");
+    }
+
+    const supplier = new Supplier(supplierData);
+    return await supplier.save();
+  }
+
+  // Get all suppliers with pagination and filtering
+  static async getAllSuppliers({ page = 1, limit = 10, status, restaurantId }) {
+    try {
+      const query = {};
+      if (status) query.status = status;
+      if (restaurantId) {
+        if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+          throw new ValidationError("Invalid restaurant ID format");
+        }
+        query.restaurantId = restaurantId;
+      }
+
+      const options = {
+        page: parseInt(page, 10),
+        limit: parseInt(limit, 10),
+        populate: "restaurantId",
+        sort: { createdAt: -1 },
+      };
+
+      if (typeof Supplier.paginate !== "function") {
+        throw new Error(
+          "Pagination plugin not properly initialized on Supplier model"
+        );
+      }
+
+      const result = await Supplier.paginate(query, options);
+
+      return {
+        suppliers: result.docs,
+        pagination: {
+          total: result.totalDocs,
+          pages: result.totalPages,
+          page: result.page,
+          limit: result.limit,
+          hasNext: result.hasNextPage,
+          hasPrev: result.hasPrevPage,
+        },
+      };
+    } catch (error) {
+      console.error("Error in getAllSuppliers:", error);
+      throw error;
+    }
+  }
+
+  // Get supplier by ID with detailed information
+  static async getSupplierById(id) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ValidationError("Invalid supplier ID format");
+    }
+
+    const supplier = await Supplier.findById(id).populate("restaurantId");
+
+    if (!supplier) {
+      throw new NotFoundError("Supplier not found");
+    }
+    return supplier;
+  }
+
+  // Update supplier with validation
+  static async updateSupplier(id, updateData) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ValidationError("Invalid supplier ID format");
+    }
+
+    if (updateData.contact?.email) {
+      const existingSupplier = await Supplier.findOne({
+        "contact.email": updateData.contact.email,
+        _id: { $ne: id },
+      });
+
+      if (existingSupplier) {
+        throw new ConflictError("Another supplier already uses this email");
+      }
+    }
+
+    const supplier = await Supplier.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!supplier) {
+      throw new NotFoundError("Supplier not found");
+    }
+    return supplier;
+  }
+
+  static async deleteSupplier(id) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new ValidationError("Invalid supplier ID format");
+    }
+
+    const supplier = await Supplier.findById(id);
+    if (!supplier) {
+      throw new NotFoundError("Supplier not found");
+    }
+
+    await SupplierIngredient.deleteMany({ supplierId: id });
+    await supplier.remove();
+
+    return {
+      success: true,
+      message: "Supplier and all related data deleted successfully",
+    };
+  }
+
+  // Link ingredient to supplier with enhanced checks
+  static async linkIngredient(
+    supplierId,
+    ingredientId,
+    pricePerUnit,
+    leadTimeDays
+  ) {
+    if (
+      !mongoose.Types.ObjectId.isValid(supplierId) ||
+      !mongoose.Types.ObjectId.isValid(ingredientId)
+    ) {
+      throw new ValidationError("Invalid ID format");
+    }
+
+    const [supplier, ingredient] = await Promise.all([
+      Supplier.findById(supplierId),
+      Ingredient.findById(ingredientId),
+    ]);
+
+    if (!supplier) throw new NotFoundError("Supplier not found");
+    if (!ingredient) throw new NotFoundError("Ingredient not found");
+
+    const existingLink = await SupplierIngredient.findOne({
+      supplierId,
+      ingredientId,
+    });
+
+    if (existingLink) {
+      throw new ConflictError("Supplier is already linked to this ingredient");
+    }
+
+    const supplierIngredient = new SupplierIngredient({
+      supplierId,
+      ingredientId,
+      pricePerUnit,
+      leadTimeDays,
+    });
+
+    return await supplierIngredient.save();
+  }
+
+  // Get all ingredients for a supplier with pricing info
+  static async getSupplierIngredients(supplierId) {
+    if (!mongoose.Types.ObjectId.isValid(supplierId)) {
+      throw new ValidationError("Invalid supplier ID format");
+    }
+
+    const supplier = await Supplier.findById(supplierId);
+    if (!supplier) throw new NotFoundError("Supplier not found");
+
+    return await SupplierIngredient.find({ supplierId })
+      .populate({
+        path: "ingredientId",
+        select: "libelle type unit",
+      })
+      .lean();
+  }
+
+  // Bulk update supplier-ingredient relationships
+  static async bulkUpdateSupplierIngredients(supplierId, ingredients) {
+    if (!mongoose.Types.ObjectId.isValid(supplierId)) {
+      throw new ValidationError("Invalid supplier ID format");
+    }
+
+    const supplier = await Supplier.findById(supplierId);
+    if (!supplier) throw new NotFoundError("Supplier not found");
+
+    const operations = ingredients.map((ingredient) => {
+      if (!mongoose.Types.ObjectId.isValid(ingredient.ingredientId)) {
+        throw new ValidationError(
+          `Invalid ingredient ID: ${ingredient.ingredientId}`
+        );
+      }
+
+      return {
+        updateOne: {
+          filter: {
+            supplierId: supplierId,
+            ingredientId: ingredient.ingredientId,
+          },
+          update: {
+            $set: {
+              pricePerUnit: ingredient.pricePerUnit,
+              leadTimeDays: ingredient.leadTimeDays,
+            },
+          },
+          upsert: true,
+        },
+      };
+    });
+
+    const result = await SupplierIngredient.bulkWrite(operations);
+    return {
+      matchedCount: result.matchedCount,
+      modifiedCount: result.modifiedCount,
+      upsertedCount: result.upsertedCount,
+    };
+  }
+
+  // Get all suppliers that provide a specific ingredient
+  static async getSuppliersByIngredient(ingredientId) {
+    if (!mongoose.Types.ObjectId.isValid(ingredientId)) {
+      throw new ValidationError("Invalid ingredient ID format");
+    }
+
+    const ingredient = await Ingredient.findById(ingredientId);
+    if (!ingredient) throw new NotFoundError("Ingredient not found");
+
+    return await SupplierIngredient.find({ ingredientId })
+      .populate("supplierId")
+      .sort({ pricePerUnit: 1 });
+  }
+
+  // Get supplier status statistics
+  static async getSupplierStats() {
+    return await Supplier.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+  }
+
+  static async unlinkIngredient(supplierId, ingredientId) {
+    if (!mongoose.Types.ObjectId.isValid(supplierId)) {
+      throw new ValidationError("Invalid supplier ID format");
+    }
+    if (!mongoose.Types.ObjectId.isValid(ingredientId)) {
+      throw new ValidationError("Invalid ingredient ID format");
+    }
+
+    const supplierIngredient = await SupplierIngredient.findOneAndDelete({
+      supplierId,
+      ingredientId,
+    });
+
+    if (!supplierIngredient) {
+      throw new NotFoundError("Supplier-ingredient relationship not found");
+    }
+
+    return {
+      success: true,
+      message: "Ingredient unlinked from supplier successfully",
+    };
+  }
+}
+
+module.exports = SupplierService;
