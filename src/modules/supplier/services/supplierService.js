@@ -1,4 +1,3 @@
-// @modules/supplier/services/supplierService.js
 const mongoose = require("mongoose");
 const Supplier = require("../../../models/supplier");
 const Ingredient = require("../../../models/ingredient");
@@ -12,6 +11,7 @@ const {
 class SupplierService {
   // Create a new supplier with email uniqueness check
   static async createSupplier(supplierData) {
+    console.log("SupplierService.createSupplier - Data:", supplierData); // Debug log
     const existingSupplier = await Supplier.findOne({
       "contact.email": supplierData.contact.email,
     });
@@ -29,7 +29,9 @@ class SupplierService {
     }
 
     const supplier = new Supplier(supplierData);
-    return await supplier.save();
+    const savedSupplier = await supplier.save();
+    console.log("SupplierService.createSupplier - Saved:", savedSupplier._id); // Debug log
+    return savedSupplier;
   }
 
   // Get all suppliers with pagination and filtering
@@ -58,6 +60,7 @@ class SupplierService {
       }
 
       const result = await Supplier.paginate(query, options);
+      console.log("SupplierService.getAllSuppliers - Result:", result.pagination); // Debug log
 
       return {
         suppliers: result.docs,
@@ -71,7 +74,7 @@ class SupplierService {
         },
       };
     } catch (error) {
-      console.error("Error in getAllSuppliers:", error);
+      console.error("Error in SupplierService.getAllSuppliers:", error.message); // Debug log
       throw error;
     }
   }
@@ -87,6 +90,7 @@ class SupplierService {
     if (!supplier) {
       throw new NotFoundError("Supplier not found");
     }
+    console.log("SupplierService.getSupplierById - Found:", supplier._id); // Debug log
     return supplier;
   }
 
@@ -115,9 +119,11 @@ class SupplierService {
     if (!supplier) {
       throw new NotFoundError("Supplier not found");
     }
+    console.log("SupplierService.updateSupplier - Updated:", supplier._id); // Debug log
     return supplier;
   }
 
+  // Delete supplier and related data
   static async deleteSupplier(id) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new ValidationError("Invalid supplier ID format");
@@ -128,9 +134,13 @@ class SupplierService {
       throw new NotFoundError("Supplier not found");
     }
 
+    // Delete related supplier-ingredient links
     await SupplierIngredient.deleteMany({ supplierId: id });
-    await supplier.remove();
 
+    // Delete supplier
+    await Supplier.deleteOne({ _id: id });
+
+    console.log("SupplierService.deleteSupplier - Deleted:", id); // Debug log
     return {
       success: true,
       message: "Supplier and all related data deleted successfully",
@@ -138,12 +148,7 @@ class SupplierService {
   }
 
   // Link ingredient to supplier with enhanced checks
-  static async linkIngredient(
-    supplierId,
-    ingredientId,
-    pricePerUnit,
-    leadTimeDays
-  ) {
+  static async linkIngredient(supplierId, ingredientId, pricePerUnit, leadTimeDays) {
     if (
       !mongoose.Types.ObjectId.isValid(supplierId) ||
       !mongoose.Types.ObjectId.isValid(ingredientId)
@@ -175,7 +180,9 @@ class SupplierService {
       leadTimeDays,
     });
 
-    return await supplierIngredient.save();
+    const savedLink = await supplierIngredient.save();
+    console.log("SupplierService.linkIngredient - Linked:", savedLink._id); // Debug log
+    return savedLink;
   }
 
   // Get all ingredients for a supplier with pricing info
@@ -187,12 +194,14 @@ class SupplierService {
     const supplier = await Supplier.findById(supplierId);
     if (!supplier) throw new NotFoundError("Supplier not found");
 
-    return await SupplierIngredient.find({ supplierId })
+    const ingredients = await SupplierIngredient.find({ supplierId })
       .populate({
         path: "ingredientId",
         select: "libelle type unit",
       })
       .lean();
+    console.log("SupplierService.getSupplierIngredients - Count:", ingredients.length); // Debug log
+    return ingredients;
   }
 
   // Bulk update supplier-ingredient relationships
@@ -229,6 +238,7 @@ class SupplierService {
     });
 
     const result = await SupplierIngredient.bulkWrite(operations);
+    console.log("SupplierService.bulkUpdateSupplierIngredients - Result:", result); // Debug log
     return {
       matchedCount: result.matchedCount,
       modifiedCount: result.modifiedCount,
@@ -245,14 +255,16 @@ class SupplierService {
     const ingredient = await Ingredient.findById(ingredientId);
     if (!ingredient) throw new NotFoundError("Ingredient not found");
 
-    return await SupplierIngredient.find({ ingredientId })
+    const suppliers = await SupplierIngredient.find({ ingredientId })
       .populate("supplierId")
       .sort({ pricePerUnit: 1 });
+    console.log("SupplierService.getSuppliersByIngredient - Count:", suppliers.length); // Debug log
+    return suppliers;
   }
 
   // Get supplier status statistics
   static async getSupplierStats() {
-    return await Supplier.aggregate([
+    const stats = await Supplier.aggregate([
       {
         $group: {
           _id: "$status",
@@ -260,8 +272,11 @@ class SupplierService {
         },
       },
     ]);
+    console.log("SupplierService.getSupplierStats - Stats:", stats); // Debug log
+    return stats;
   }
 
+  // Unlink ingredient from supplier
   static async unlinkIngredient(supplierId, ingredientId) {
     if (!mongoose.Types.ObjectId.isValid(supplierId)) {
       throw new ValidationError("Invalid supplier ID format");
@@ -279,6 +294,7 @@ class SupplierService {
       throw new NotFoundError("Supplier-ingredient relationship not found");
     }
 
+    console.log("SupplierService.unlinkIngredient - Unlinked:", supplierIngredient._id); // Debug log
     return {
       success: true,
       message: "Ingredient unlinked from supplier successfully",

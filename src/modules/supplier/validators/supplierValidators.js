@@ -1,6 +1,4 @@
-// @modules/supplier/validators/supplierValidators.js
-const { body, param } = require("express-validator");
-const { validationResult } = require("express-validator");
+const { body, param, validationResult } = require("express-validator");
 
 const validateSupplier = [
   body("name")
@@ -12,8 +10,7 @@ const validateSupplier = [
     .isLength({ max: 100 })
     .withMessage("Name cannot exceed 100 characters"),
   body("contact.phone")
-    .notEmpty()
-    .withMessage("Phone is required")
+    .optional()
     .isString()
     .withMessage("Phone must be a string")
     .trim()
@@ -34,14 +31,12 @@ const validateSupplier = [
     .isLength({ max: 100 })
     .withMessage("Representative name cannot exceed 100 characters"),
   body("address.street")
-    .notEmpty()
-    .withMessage("Street address is required")
+    .optional()
     .isString()
     .withMessage("Street must be a string")
     .trim(),
   body("address.city")
-    .notEmpty()
-    .withMessage("City is required")
+    .optional()
     .isString()
     .withMessage("City must be a string")
     .trim(),
@@ -72,7 +67,7 @@ const validateSupplier = [
   body("payment.currency").optional().trim(),
   body("payment.preferredMethod")
     .optional()
-    .isIn(["bank", "credit", "check"])
+    .isIn(["bank", "credit", "cash"])
     .withMessage("Invalid payment method"),
   body("notes")
     .optional()
@@ -81,14 +76,17 @@ const validateSupplier = [
     .isLength({ max: 500 })
     .withMessage("Notes cannot exceed 500 characters"),
   body("restaurantId")
-    .notEmpty()
-    .withMessage("Restaurant ID is required")
+    .optional()
     .isMongoId()
     .withMessage("Invalid restaurant ID"),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        details: errors.array(),
+      });
     }
     if (
       req.body.contract?.endDate &&
@@ -96,7 +94,9 @@ const validateSupplier = [
         new Date(req.body.contract.startDate)
     ) {
       return res.status(400).json({
-        errors: [
+        success: false,
+        message: "Validation failed",
+        details: [
           {
             msg: "Contract end date must be after start date",
             param: "contract.endDate",
@@ -114,7 +114,11 @@ const validateSupplierId = [
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        details: errors.array(),
+      });
     }
     next();
   },
@@ -140,7 +144,11 @@ const validateSupplierIngredient = [
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        details: errors.array(),
+      });
     }
     next();
   },

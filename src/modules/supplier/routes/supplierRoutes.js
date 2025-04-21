@@ -1,4 +1,3 @@
-// @modules/supplier/routes/supplierRoutes.js
 const express = require("express");
 const router = express.Router();
 const supplierController = require("../controllers/supplierController");
@@ -8,11 +7,11 @@ const {
   validateSupplierIngredient,
   validateIngredientId,
 } = require("../validators/supplierValidators");
-const { body, param, validationResult } = require("express-validator");
+const { body, validationResult } = require("express-validator");
 
 // Test route
 router.get("/test", (req, res) =>
-  res.json({ message: "Supplier route working" })
+  res.status(200).json({ success: true, message: "Supplier route working" })
 );
 
 // Stats route (static, defined early)
@@ -23,11 +22,7 @@ router.post("/", validateSupplier, supplierController.createSupplier);
 router.get("/", supplierController.getAllSuppliers);
 
 // Supplier CRUD routes (dynamic, require supplierId)
-router.get(
-  "/:supplierId",
-  validateSupplierId,
-  supplierController.getSupplierById
-);
+router.get("/:supplierId", validateSupplierId, supplierController.getSupplierById);
 router.put(
   "/:supplierId",
   validateSupplierId,
@@ -41,6 +36,12 @@ router.delete(
 );
 
 // Supplier-ingredient relationship routes (nested under supplierId)
+router.post(
+  "/:supplierId/link-ingredient",
+  validateSupplierId,
+  validateSupplierIngredient,
+  supplierController.linkIngredient
+);
 router.post(
   "/:supplierId/ingredients",
   validateSupplierId,
@@ -92,20 +93,7 @@ router.patch(
 // Ingredient-related route (dynamic, require ingredientId)
 router.get(
   "/ingredient/:ingredientId",
-  [
-    param("ingredientId").isMongoId().withMessage("Invalid ingredient ID"),
-    (req, res, next) => {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({
-          success: false,
-          message: "Validation failed",
-          details: errors.array(),
-        });
-      }
-      next();
-    },
-  ],
+  validateIngredientId,
   supplierController.getSuppliersByIngredient
 );
 
