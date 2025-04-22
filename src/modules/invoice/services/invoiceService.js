@@ -47,13 +47,12 @@ class InvoiceService {
     if (!invoice) {
       throw new Error("Invoice not found");
     }
-
     const items = await InvoiceItem.find({ invoice: invoiceId }).populate(
       "ingredient",
       "libelle price"
     );
 
-    return { ...invoice.toObject(), items };
+    return { ...invoice._doc, items };
   }
 
   async updateStatus(invoiceId, status) {
@@ -62,6 +61,14 @@ class InvoiceService {
       { status },
       { new: true }
     );
+
+    if (!invoice) {
+      throw new Error("Invoice not found");
+    }
+    return invoice;
+  }
+  async deleteInvoice(invoiceId) {
+    const invoice = await Invoice.findByIdAndDelete(invoiceId);
 
     if (!invoice) {
       throw new Error("Invoice not found");
