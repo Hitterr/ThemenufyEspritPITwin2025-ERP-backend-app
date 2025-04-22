@@ -27,6 +27,7 @@ app.use("/api/restaurant", require("@modules/restaurant"));
 app.use("/api/admin", require("@modules/admin"));
 app.use("/api/ingredient", require("@modules/ingredient"));
 
+app.use("/api/chatbot", require("./modules/supplier/routes/chatbotRoute")); 
 
 app.use("/api/suppliers", require("@modules/supplier"));
 // Start server
