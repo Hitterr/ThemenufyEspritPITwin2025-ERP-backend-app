@@ -11,7 +11,7 @@ const {
 class SupplierService {
   // Create a new supplier with email uniqueness check
   static async createSupplier(supplierData) {
-    console.log("SupplierService.createSupplier - Data:", supplierData); // Debug log
+    console.log("SupplierService.createSupplier - Data:", supplierData);
     const existingSupplier = await Supplier.findOne({
       "contact.email": supplierData.contact.email,
     });
@@ -30,7 +30,7 @@ class SupplierService {
 
     const supplier = new Supplier(supplierData);
     const savedSupplier = await supplier.save();
-    console.log("SupplierService.createSupplier - Saved:", savedSupplier._id); // Debug log
+    console.log("SupplierService.createSupplier - Saved:", savedSupplier._id);
     return savedSupplier;
   }
 
@@ -60,8 +60,7 @@ class SupplierService {
       }
 
       const result = await Supplier.paginate(query, options);
-      console.log("SupplierService.getAllSuppliers - Result:", result.pagination); // Debug log
-
+      console.log("SupplierService.getAllSuppliers - Result:", result.pagination);
       return {
         suppliers: result.docs,
         pagination: {
@@ -74,7 +73,7 @@ class SupplierService {
         },
       };
     } catch (error) {
-      console.error("Error in SupplierService.getAllSuppliers:", error.message); // Debug log
+      console.error("Error in SupplierService.getAllSuppliers:", error.message);
       throw error;
     }
   }
@@ -90,7 +89,7 @@ class SupplierService {
     if (!supplier) {
       throw new NotFoundError("Supplier not found");
     }
-    console.log("SupplierService.getSupplierById - Found:", supplier._id); // Debug log
+    console.log("SupplierService.getSupplierById - Found:", supplier._id);
     return supplier;
   }
 
@@ -119,7 +118,7 @@ class SupplierService {
     if (!supplier) {
       throw new NotFoundError("Supplier not found");
     }
-    console.log("SupplierService.updateSupplier - Updated:", supplier._id); // Debug log
+    console.log("SupplierService.updateSupplier - Updated:", supplier._id);
     return supplier;
   }
 
@@ -140,7 +139,7 @@ class SupplierService {
     // Delete supplier
     await Supplier.deleteOne({ _id: id });
 
-    console.log("SupplierService.deleteSupplier - Deleted:", id); // Debug log
+    console.log("SupplierService.deleteSupplier - Deleted:", id);
     return {
       success: true,
       message: "Supplier and all related data deleted successfully",
@@ -181,7 +180,7 @@ class SupplierService {
     });
 
     const savedLink = await supplierIngredient.save();
-    console.log("SupplierService.linkIngredient - Linked:", savedLink._id); // Debug log
+    console.log("SupplierService.linkIngredient - Linked:", savedLink._id);
     return savedLink;
   }
 
@@ -200,7 +199,7 @@ class SupplierService {
         select: "libelle type unit",
       })
       .lean();
-    console.log("SupplierService.getSupplierIngredients - Count:", ingredients.length); // Debug log
+    console.log("SupplierService.getSupplierIngredients - Count:", ingredients.length);
     return ingredients;
   }
 
@@ -238,7 +237,7 @@ class SupplierService {
     });
 
     const result = await SupplierIngredient.bulkWrite(operations);
-    console.log("SupplierService.bulkUpdateSupplierIngredients - Result:", result); // Debug log
+    console.log("SupplierService.bulkUpdateSupplierIngredients - Result:", result);
     return {
       matchedCount: result.matchedCount,
       modifiedCount: result.modifiedCount,
@@ -258,7 +257,7 @@ class SupplierService {
     const suppliers = await SupplierIngredient.find({ ingredientId })
       .populate("supplierId")
       .sort({ pricePerUnit: 1 });
-    console.log("SupplierService.getSuppliersByIngredient - Count:", suppliers.length); // Debug log
+    console.log("SupplierService.getSuppliersByIngredient - Count:", suppliers.length);
     return suppliers;
   }
 
@@ -266,13 +265,55 @@ class SupplierService {
   static async getSupplierStats() {
     const stats = await Supplier.aggregate([
       {
-        $group: {
-          _id: "$status",
-          count: { $sum: 1 },
+        $facet: {
+          // Count suppliers by status
+          statusCounts: [
+            {
+              $group: {
+                _id: "$status",
+                count: { $sum: 1 },
+              },
+            },
+          ],
+          // Count unique restaurants linked to suppliers
+          restaurantsLinked: [
+            {
+              $match: {
+                restaurantId: { $ne: null }, // Only include suppliers with a restaurantId
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                uniqueRestaurants: { $addToSet: "$restaurantId" }, // Collect unique restaurantIds
+              },
+            },
+            {
+              $project: {
+                _id: "totalRestaurantsLinked", // Use the key expected by the frontend
+                count: { $size: "$uniqueRestaurants" }, // Count the number of unique restaurants
+              },
+            },
+          ],
         },
       },
+      // Combine the results from statusCounts and restaurantsLinked into a single array
+      {
+        $project: {
+          data: {
+            $concatArrays: ["$statusCounts", "$restaurantsLinked"],
+          },
+        },
+      },
+      {
+        $unwind: "$data", // Flatten the array
+      },
+      {
+        $replaceRoot: { newRoot: "$data" }, // Replace the root with the data array elements
+      },
     ]);
-    console.log("SupplierService.getSupplierStats - Stats:", stats); // Debug log
+
+    console.log("SupplierService.getSupplierStats - Stats:", stats);
     return stats;
   }
 
@@ -294,7 +335,7 @@ class SupplierService {
       throw new NotFoundError("Supplier-ingredient relationship not found");
     }
 
-    console.log("SupplierService.unlinkIngredient - Unlinked:", supplierIngredient._id); // Debug log
+    console.log("SupplierService.unlinkIngredient - Unlinked:", supplierIngredient._id);
     return {
       success: true,
       message: "Ingredient unlinked from supplier successfully",
