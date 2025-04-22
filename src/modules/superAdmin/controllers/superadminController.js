@@ -61,26 +61,27 @@ class SuperAdminController {
       res.status(400).json({ success: false, message: error.message });
     }
   }
+  async archiveSuperAdmin(req, res) {
+    try {
+        const { id } = req.params;
 
-  async deleteSuperAdmin(req, res) {
-    try {
-      const { id } = req.params;
-      const response = await superAdminService.deleteSuperAdmin(id);
-      res.status(200).json({ success: true, message: response.message });
+        const archivedAdmin = await superAdminService.archiveSuperAdmin(id);
+
+        res.status(200).json({ success: true, message: "Super Admin archived successfully", data: archivedAdmin });
     } catch (error) {
-      res.status(400).json({ success: false, message: error.message });
+        res.status(400).json({ success: false, message: error.message });
     }
-  }
-/*
-  async login(req, res) {
+}
+
+async deleteArchivedSuperAdmin(req, res) {
     try {
-      const { email, password } = req.body;
-      const result = await superAdminService.login(email, password);
-      res.status(200).json({ success: true, data: result });
+        const { id } = req.params;
+        const deletedAdmin = await superAdminService.deleteArchivedSuperAdmin(id);
+        res.status(200).json({ success: true, message: "Super Admin permanently deleted", data: deletedAdmin });
     } catch (error) {
-      res.status(401).json({ success: false, message: error.message });
+        res.status(400).json({ success: false, message: error.message });
     }
-  }*/
+}
 }
 
 module.exports = new SuperAdminController();

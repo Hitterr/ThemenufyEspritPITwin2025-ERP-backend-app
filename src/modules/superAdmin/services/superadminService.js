@@ -38,13 +38,31 @@ class SuperAdminService {
     if (!admin) throw new Error("Super Admin not found");
     return admin;
   }
+  async archiveSuperAdmin(id) {
+    const admin = await SuperAdmin.findByIdAndUpdate(
+      id,
+      { archived: true },
+      { new: true }
+    );
+    if (!admin) throw new Error("Super Admin not found");
+    return admin;
+  }
+  
+async deleteArchivedSuperAdmin(id) {
+    const admin = await SuperAdmin.findOne({ _id: id, archived: true });
+    if (!admin) throw new Error("Super Admin not found or not archived");
+    
+    await SuperAdmin.findByIdAndDelete(id);
+    return admin;
+}
 
+/*
   async deleteSuperAdmin(id) {
     const admin = await SuperAdmin.findByIdAndDelete(id);
     if (!admin) throw new Error("Super Admin not found");
     return { message: "Super Admin deleted successfully" };
   }
-/*
+
   async login(email, password) {
     const admin = await SuperAdmin.findOne({ email });
     if (!admin) throw new Error("Invalid credentials");

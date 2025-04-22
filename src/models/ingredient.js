@@ -46,7 +46,6 @@ const ingredientSchema = new Schema(
   { timestamps: true }
 );
 
-// Index libelle for faster lookups
 ingredientSchema.index({ libelle: 1 });
-
-module.exports = mongoose.model("Ingredient", ingredientSchema);
+const Ingredient = mongoose.models.Ingredient || mongoose.model("Ingredient", ingredientSchema);
+module.exports = Ingredient;

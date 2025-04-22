@@ -13,4 +13,8 @@ router.delete("/:id", ingredientController.deleteIngredient);
 router.patch("/:id/increase", ingredientController.increaseQuantity);
 router.patch("/:id/decrease", ingredientController.decreaseQuantity);
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> c14d2f4d9e9e3519ad4f71c61c32abb70228779f
 module.exports = router;

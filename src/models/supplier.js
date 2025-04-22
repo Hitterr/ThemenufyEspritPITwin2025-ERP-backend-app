@@ -4,6 +4,13 @@ const mongoosePaginate = require("mongoose-paginate-v2");
 const supplierSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
+    ingredients: [
+      {
+        ingredientId: mongoose.Schema.Types.ObjectId,
+        price: Number,
+        deliveryTime: Number, 
+      }
+    ],
     contact: {
       email: { type: String, required: true, unique: true }, // Add unique index for email
       phone: String,
@@ -60,3 +67,4 @@ supplierSchema.index({ restaurantId: 1 });
 supplierSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model("Supplier", supplierSchema);
+
