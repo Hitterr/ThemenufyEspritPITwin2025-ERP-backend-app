@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-const Ingredient = require("../../../models/ingredient");
-=======
 const Ingredient = require("../../../models/Ingredient");
->>>>>>> c14d2f4d9e9e3519ad4f71c61c32abb70228779f
 const {
 	emitIngredientAlert,
 	emitIngredientUpdate,
@@ -67,10 +63,6 @@ class IngredientService {
 		}
 		emitIngredientUpdate(ingredient);
 		return ingredient;
-<<<<<<< HEAD
-	}
-=======
 	}	
->>>>>>> c14d2f4d9e9e3519ad4f71c61c32abb70228779f
 }
 module.exports = new IngredientService();
