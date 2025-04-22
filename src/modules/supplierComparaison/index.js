@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const supplierRoutes = require("./routes/supplierRoute");
+const supplierRoutes = require("./routes/supplierCompRoute");
 
 router.use("/", supplierRoutes);
 

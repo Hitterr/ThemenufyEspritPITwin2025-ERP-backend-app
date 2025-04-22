@@ -1,4 +1,4 @@
-const { handleChatbotRequest } = require('../services/chatbotService');
+const { handleChatbotRequest } = require('../services/suppchatbotService');
 
 exports.processMessage = async (req, res) => {
   try {
