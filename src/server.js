@@ -26,6 +26,8 @@ app.use("/api/superadmins", require("@modules/superAdmin"));
 app.use("/api/restaurant", require("@modules/restaurant"));
 app.use("/api/admin", require("@modules/admin"));
 app.use("/api/ingredient", require("@modules/ingredient"));
+app.use("/api/storage", require("@modules/storage"));
+
 app.use("/api/supplier", require("@modules/supplier/routes/supplierRoutes"));
 app.use("/api/invoice", require("@modules/invoice"));
 // Start server
