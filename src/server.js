@@ -27,6 +27,7 @@ app.use("/api/restaurant", require("@modules/restaurant"));
 app.use("/api/admin", require("@modules/admin"));
 app.use("/api/ingredient", require("@modules/ingredient"));
 app.use("/api/invoice", require("@modules/invoice"));
+app.use("/api/storage", require("@modules/storage"));
 
 app.use("/api/supplier", require("@modules/supplier/routes/supplierRoutes"));
 app.use("/api/invoice", require("@modules/invoice"));
@@ -39,8 +40,8 @@ const server = http.createServer(app);
 initSocket(server);
 // Start server
 server.listen(PORT, () => {
-	console.log(`🚀 Server running on port ${PORT}`);
-	logAvailableRoutes();
+  console.log(`🚀 Server running on port ${PORT}`);
+  logAvailableRoutes();
 });
 // Remove the duplicate exports and keep only this one
 module.exports = app;
