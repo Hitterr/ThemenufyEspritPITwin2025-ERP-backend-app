@@ -63,9 +63,27 @@ const deleteInvoiceItem = async (req, res) => {
     });
   }
 };
+const getInvoiceItems = async (req, res) => {
+  try {
+    const { invoiceId } = req.params;
+    const items = await invoiceItemService.getItemsByInvoiceId(invoiceId);
+
+    res.status(200).json({
+      success: true,
+      data: items,
+      message: "Invoice items retrieved successfully",
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 module.exports = {
   addInvoiceItem,
   updateInvoiceItem,
   deleteInvoiceItem,
+  getInvoiceItems,
 };

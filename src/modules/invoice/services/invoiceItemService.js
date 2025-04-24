@@ -1,13 +1,25 @@
 const InvoiceItem = require("../../../models/invoiceItem");
 const Invoice = require("../../../models/invoice");
-
+const ingredientService = require("../../ingredient/services/ingredientService");
 class InvoiceItemService {
   async addItem(invoiceId, itemData) {
     const invoice = await Invoice.findById(invoiceId);
     if (!invoice) {
       throw new Error("Invoice not found");
     }
-
+    if (itemData.ingredient) {
+      const ing = await ingredientService.getIngredientById(
+        itemData.ingredient
+      );
+      if (!ing) {
+        throw new Error("Ingredient not found");
+      } else if (ing && itemData.price != ing.price) {
+        ing.price = itemData.price;
+        await ing.save();
+      }
+      itemData.price = ing.price;
+      itemData.ingredient = ing._id; // Assuming you have a field named 'ingredient' in your InvoiceItem schem
+    }
     const item = await InvoiceItem.create({
       invoice: invoiceId,
       ...itemData,
@@ -19,6 +31,19 @@ class InvoiceItemService {
   }
 
   async updateItem(itemId, updateData) {
+    if (updateData.ingredient) {
+      const ing = await ingredientService.getIngredientById(
+        updateData.ingredient
+      );
+      if (!ing) {
+        throw new Error("Ingredient not found");
+      } else if (ing && updateData.price != ing.price) {
+        ing.price = updateData.price;
+        await ing.save();
+      }
+      updateData.price = ing.price;
+      updateData.ingredient = ing._id; // Assuming you have a field named 'ingredient' in your InvoiceItem schem
+    }
     const item = await InvoiceItem.findByIdAndUpdate(itemId, updateData, {
       new: true,
     }).populate("ingredient", "libelle price");
@@ -44,6 +69,9 @@ class InvoiceItemService {
     await invoice.save(); // Recalculate total
 
     return true;
+  }
+  async getItemsByInvoiceId(invoiceId) {
+    return await InvoiceItem.find({ invoice: invoiceId });
   }
 }
 

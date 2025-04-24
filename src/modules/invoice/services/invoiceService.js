@@ -1,16 +1,16 @@
 const Invoice = require("../../../models/invoice");
 const InvoiceItem = require("../../../models/invoiceItem");
-
+const invoiceItemService = require("./invoiceItemService");
 class InvoiceService {
   async createInvoice({ userId, restaurant, supplier, items }) {
-    const invoice = new Invoice({
-      user: userId,
+    let invoice = new Invoice({
+      created_by: userId,
       restaurant,
       supplier,
       invoiceNumber: Date.now().toString(), // You might want a better number generation logic
     });
 
-    await invoice.save();
+    invoice = await invoice.save();
 
     // Create invoice items
     const itemPromises = items.map((item) =>
@@ -19,39 +19,44 @@ class InvoiceService {
         ...item,
       })
     );
-
     await Promise.all(itemPromises);
+    items = await invoiceItemService.getItemsByInvoiceId(invoice._id);
+    invoice.total = items.reduce((sum, item) => {
+      const total = sum + item.price * item.quantity;
+      console.log(total);
+      return total;
+    }, 0);
+    invoice = await invoice.save();
 
-    return this.getInvoice(invoice._id);
+    return { ...invoice._doc, items };
   }
 
   async getInvoices() {
     return Invoice.find()
-      .populate("user", "firstName lastName email")
+      .populate("created_by", "firstName lastName email")
       .populate("restaurant")
       .populate("supplier");
   }
 
   async getInvoice(invoiceId) {
     const invoice = await Invoice.findById(invoiceId)
-      .populate("user", "firstName lastName email")
+      .populate("created_by", "firstName lastName email")
       .populate("restaurant")
       .populate("supplier");
 
     if (!invoice) {
       throw new Error("Invoice not found");
     }
-
     const items = await InvoiceItem.find({ invoice: invoiceId }).populate(
       "ingredient",
       "libelle price"
     );
 
-    return { ...invoice.toObject(), items };
+    return { ...invoice._doc, items };
   }
 
   async updateStatus(invoiceId, status) {
-    const invoice = await Invoice.findByIdAndUpdate(
+    let invoice = await Invoice.findByIdAndUpdate(
       invoiceId,
       { status },
       { new: true }
@@ -60,7 +65,14 @@ class InvoiceService {
     if (!invoice) {
       throw new Error("Invoice not found");
     }
+    return invoice;
+  }
+  async deleteInvoice(invoiceId) {
+    const invoice = await Invoice.findByIdAndDelete(invoiceId);
 
+    if (!invoice) {
+      throw new Error("Invoice not found");
+    }
     return invoice;
   }
 }
