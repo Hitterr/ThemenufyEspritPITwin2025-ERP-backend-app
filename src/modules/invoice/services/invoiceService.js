@@ -56,9 +56,10 @@ class InvoiceService {
   }
 
   async updateStatus(invoiceId, status) {
+    const delivered = status.toLowerCase() == "delivered" ? new Date() : null;
     let invoice = await Invoice.findByIdAndUpdate(
       invoiceId,
-      { status },
+      { status, deliveredAt: delivered },
       { new: true }
     );
 
@@ -73,6 +74,7 @@ class InvoiceService {
     if (!invoice) {
       throw new Error("Invoice not found");
     }
+    //delete price histories of this invoice(invoiceid)
     return invoice;
   }
 }
