@@ -16,6 +16,7 @@ class InvoiceItemService {
       } else if (ing && itemData.price != ing.price) {
         ing.price = itemData.price;
         await ing.save();
+        //add price history (itemData.price , itemData.suppplier , itemData.restaurantid)
       }
       itemData.price = ing.price;
       itemData.ingredient = ing._id; // Assuming you have a field named 'ingredient' in your InvoiceItem schem

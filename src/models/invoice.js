@@ -17,7 +17,7 @@ const invoiceSchema = new mongoose.Schema({
   },
   supplier: {
     type: mongoose.Schema.Types.ObjectId,
-    // ref: "Supplier",
+    //ref: "Supplier",
     required: true,
   },
   total: {
@@ -26,7 +26,7 @@ const invoiceSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["pending", "paid", "cancelled"],
+    enum: ["pending", "delivered", "cancelled"],
     default: "pending",
   },
   createdAt: {
@@ -36,6 +36,10 @@ const invoiceSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now,
+  },
+  deliveredAt: {
+    type: Date,
+    default: null,
   },
 });
 
