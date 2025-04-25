@@ -17,6 +17,13 @@ const priceHistorySchema = new mongoose.Schema({
     ref: "Ingredient",
     required: true,
   },
+
+  invoiceId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Invoice",
+    required: true,
+  },
+
   price: {
     type: Number,
     required: true,

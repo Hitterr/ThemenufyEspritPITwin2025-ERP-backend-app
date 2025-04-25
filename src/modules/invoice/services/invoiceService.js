@@ -1,6 +1,7 @@
 const Invoice = require("../../../models/invoice");
 const InvoiceItem = require("../../../models/invoiceItem");
 const invoiceItemService = require("./invoiceItemService");
+const PriceHistory = require("../../../models/PriceHistory");
 class InvoiceService {
   async createInvoice({
     userId,
@@ -83,6 +84,7 @@ class InvoiceService {
       throw new Error("Invoice not found");
     }
     //delete price histories of this invoice(invoiceid)
+    await PriceHistory.deleteMany({ invoiceId: invoiceId });
     return invoice;
   }
 }
