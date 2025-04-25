@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Supplier = require("../../../models/supplier");
 const Ingredient = require("../../../models/ingredient");
 const SupplierIngredient = require("../../../models/supplierIngredient");
+const Invoice = require("../../../models/invoice");
 const {
   NotFoundError,
   ConflictError,
@@ -184,6 +185,36 @@ class SupplierService {
     return savedLink;
   }
 
+  // Unlink ingredient from supplier
+  static async unlinkIngredient(supplierId, ingredientId) {
+    try {
+      console.log("Unlinking - Supplier ID:", supplierId, "Ingredient ID:", ingredientId);
+      if (!mongoose.Types.ObjectId.isValid(supplierId) || !mongoose.Types.ObjectId.isValid(ingredientId)) {
+        throw new ValidationError("Invalid supplier or ingredient ID format");
+      }
+
+      const supplier = await Supplier.findById(supplierId);
+      if (!supplier) {
+        throw new NotFoundError("Supplier not found");
+      }
+
+      const supplierIngredient = await SupplierIngredient.findOneAndDelete({
+        supplierId,
+        ingredientId,
+      });
+
+      if (!supplierIngredient) {
+        throw new NotFoundError("Ingredient not linked to this supplier");
+      }
+
+      console.log("Unlinked successfully");
+      return true;
+    } catch (error) {
+      console.error("Error in unlinkIngredient (Service):", error.message, error.stack);
+      throw error;
+    }
+  }
+
   // Get all ingredients for a supplier with pricing info
   static async getSupplierIngredients(supplierId) {
     if (!mongoose.Types.ObjectId.isValid(supplierId)) {
@@ -279,25 +310,24 @@ class SupplierService {
           restaurantsLinked: [
             {
               $match: {
-                restaurantId: { $ne: null }, // Only include suppliers with a restaurantId
+                restaurantId: { $ne: null },
               },
             },
             {
               $group: {
                 _id: null,
-                uniqueRestaurants: { $addToSet: "$restaurantId" }, // Collect unique restaurantIds
+                uniqueRestaurants: { $addToSet: "$restaurantId" },
               },
             },
             {
               $project: {
-                _id: "totalRestaurantsLinked", // Use the key expected by the frontend
-                count: { $size: "$uniqueRestaurants" }, // Count the number of unique restaurants
+                _id: "totalRestaurantsLinked",
+                count: { $size: "$uniqueRestaurants" },
               },
             },
           ],
         },
       },
-      // Combine the results from statusCounts and restaurantsLinked into a single array
       {
         $project: {
           data: {
@@ -306,10 +336,10 @@ class SupplierService {
         },
       },
       {
-        $unwind: "$data", // Flatten the array
+        $unwind: "$data",
       },
       {
-        $replaceRoot: { newRoot: "$data" }, // Replace the root with the data array elements
+        $replaceRoot: { newRoot: "$data" },
       },
     ]);
 
@@ -317,29 +347,84 @@ class SupplierService {
     return stats;
   }
 
-  // Unlink ingredient from supplier
-  static async unlinkIngredient(supplierId, ingredientId) {
-    if (!mongoose.Types.ObjectId.isValid(supplierId)) {
-      throw new ValidationError("Invalid supplier ID format");
-    }
-    if (!mongoose.Types.ObjectId.isValid(ingredientId)) {
-      throw new ValidationError("Invalid ingredient ID format");
-    }
+  // Get top suppliers by average delivery time
+  static async getTopSuppliersByDeliveryTime() {
+    const stats = await Invoice.aggregate([
+      // Step 1: Filter invoices that have been delivered
+      {
+        $match: {
+          deliveredAt: { $ne: null },
+          createdAt: { $ne: null },
+          status: { $in: ["paid", "pending"] },
+        },
+      },
+      // Step 2: Calculate delivery time for each invoice (in milliseconds)
+      {
+        $addFields: {
+          deliveryTimeMs: {
+            $subtract: ["$deliveredAt", "$createdAt"],
+          },
+        },
+      },
+      // Step 3: Group by supplier to calculate average delivery time
+      {
+        $group: {
+          _id: "$supplier",
+          averageDeliveryTimeMs: { $avg: "$deliveryTimeMs" },
+          invoiceCount: { $sum: 1 },
+        },
+      },
+      // Step 4: Lookup supplier details
+      {
+        $lookup: {
+          from: "suppliers",
+          localField: "_id",
+          foreignField: "_id",
+          as: "supplierDetails",
+        },
+      },
+      // Step 5: Unwind supplierDetails to get a single supplier object
+      {
+        $unwind: {
+          path: "$supplierDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      // Step 6: Filter out suppliers that don't exist
+      {
+        $match: {
+          supplierDetails: { $ne: null },
+        },
+      },
+      // Step 7: Convert average delivery time to days
+      {
+        $addFields: {
+          averageDeliveryTimeDays: {
+            $divide: ["$averageDeliveryTimeMs", 1000 * 60 * 60 * 24],
+          },
+        },
+      },
+      // Step 8: Sort by average delivery time (ascending)
+      {
+        $sort: {
+          averageDeliveryTimeDays: 1,
+        },
+      },
+      // Step 9: Project the fields to return
+      {
+        $project: {
+          supplierId: "$_id",
+          supplierName: "$supplierDetails.name",
+          averageDeliveryTimeDays: 1,
+          invoiceCount: 1,
+          _id: 0,
+        },
+      },
+    ]);
 
-    const supplierIngredient = await SupplierIngredient.findOneAndDelete({
-      supplierId,
-      ingredientId,
-    });
-
-    if (!supplierIngredient) {
-      throw new NotFoundError("Supplier-ingredient relationship not found");
-    }
-
-    console.log("SupplierService.unlinkIngredient - Unlinked:", supplierIngredient._id);
-    return {
-      success: true,
-      message: "Ingredient unlinked from supplier successfully",
-    };
+    console.log("SupplierService.getTopSuppliersByDeliveryTime - Stats:", stats);
+    console.log("Number of suppliers returned:", stats.length);
+    return stats;
   }
 }
 

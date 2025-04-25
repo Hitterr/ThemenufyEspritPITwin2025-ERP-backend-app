@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+
 const invoiceSchema = new mongoose.Schema({
   invoiceNumber: {
     type: String,
@@ -36,6 +37,10 @@ const invoiceSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now,
+  },
+  deliveredAt: {
+    type: Date,
+    required: false, // Optional field; set to true if you want it to be required
   },
 });
 

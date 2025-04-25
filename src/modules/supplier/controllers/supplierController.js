@@ -280,6 +280,25 @@ const bulkUpdateSupplierIngredients = async (req, res) => {
     });
   }
 };
+const getTopSuppliersByDeliveryTime = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const stats = await supplierService.getTopSuppliersByDeliveryTime({
+      startDate,
+      endDate,
+    });
+    res.status(200).json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    console.error("Error in getTopSuppliersByDeliveryTime:", error.message);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 module.exports = {
   createSupplier,
@@ -293,4 +312,5 @@ module.exports = {
   getSupplierStats,
   unlinkIngredient,
   bulkUpdateSupplierIngredients,
+  getTopSuppliersByDeliveryTime, // Added new handler
 };
