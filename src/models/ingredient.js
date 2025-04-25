@@ -13,9 +13,9 @@ const ingredientSchema = new Schema(
       min: 0,
     },
     type: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
       required: true,
-      trim: true,
     },
     price: {
       type: Number,
@@ -38,6 +38,7 @@ const ingredientSchema = new Schema(
     },
     unit: {
       type: String,
+      enum: ["g", "kg", "mg", "l", "ml", "cl", "pcs"],
       required: true,
       trim: true,
     },
@@ -45,5 +46,6 @@ const ingredientSchema = new Schema(
   { timestamps: true }
 );
 ingredientSchema.index({ libelle: 1 });
-const Ingredient = mongoose.models.Ingredient || mongoose.model("Ingredient", ingredientSchema);
+const Ingredient =
+  mongoose.models.Ingredient || mongoose.model("Ingredient", ingredientSchema);
 module.exports = Ingredient;
