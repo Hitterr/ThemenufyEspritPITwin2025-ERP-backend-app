@@ -2,14 +2,35 @@ const invoiceItemService = require("../services/invoiceItemService");
 const { invoiceItemSchema } = require("../validators/invoiceItemValidator");
 const addInvoiceItem = async (req, res) => {
   try {
-    const { invoiceId } = req.params;
-    const { ingredientId, quantity, description } = req.body;
+    await invoiceItemSchema.validate(req.body, { abortEarly: false });
 
-    const item = await invoiceItemService.addItem(invoiceId, {
-      ingredient: ingredientId,
+    const { invoiceId } = req.params;
+    const {
+      ingredient,
       quantity,
       description,
-    });
+      price,
+      supplierId,
+      restaurantId,
+    } = req.body;
+
+    if (!ingredient) {
+      return res.status(400).json({
+        success: false,
+        message: "Ingredient ID is required",
+      });
+    }
+
+    const itemData = {
+      ingredient: ingredient || undefined,
+      quantity,
+      description,
+      price,
+      supplierId,
+      restaurantId,
+    };
+
+    const item = await invoiceItemService.addItem(invoiceId, itemData);
 
     res.status(201).json({
       success: true,

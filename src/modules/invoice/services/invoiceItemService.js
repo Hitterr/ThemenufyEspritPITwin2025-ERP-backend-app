@@ -1,6 +1,8 @@
 const InvoiceItem = require("../../../models/invoiceItem");
 const Invoice = require("../../../models/invoice");
 const ingredientService = require("../../ingredient/services/ingredientService");
+const PriceHistory = require("../../../models/PriceHistory");
+
 class InvoiceItemService {
   async addItem(invoiceId, itemData) {
     const invoice = await Invoice.findById(invoiceId);
@@ -17,9 +19,17 @@ class InvoiceItemService {
         ing.price = itemData.price;
         await ing.save();
         //add price history (itemData.price , itemData.suppplier , itemData.restaurantid)
+        const priceHistoryData = {
+          restaurantId: itemData.restaurantId, // Assuming you have restaurantId in itemData
+          supplierId: itemData.supplierId, // Assuming supplierId is in itemData
+          ingredientId: itemData.ingredient,
+          invoiceId: invoiceId,
+          price: itemData.price,
+        };
+        await PriceHistory.create(priceHistoryData); // Create new price history
       }
       itemData.price = ing.price;
-      itemData.ingredient = ing._id; // Assuming you have a field named 'ingredient' in your InvoiceItem schem
+      itemData.ingredient = ing._id;
     }
     const item = await InvoiceItem.create({
       invoice: invoiceId,
