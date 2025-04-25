@@ -32,6 +32,9 @@ importers:
       express-list-endpoints:
         specifier: ^7.1.1
         version: 7.1.1
+      express-validator:
+        specifier: ^7.2.1
+        version: 7.2.1
       google-auth-library:
         specifier: ^9.15.1
         version: 9.15.1
@@ -44,6 +47,9 @@ importers:
       mongoose:
         specifier: ^8.10.1
         version: 8.10.1
+      mongoose-paginate-v2:
+        specifier: ^1.9.0
+        version: 1.9.0(mongoose@8.10.1)
       nodemailer:
         specifier: ^6.10.0
         version: 6.10.0
@@ -353,6 +359,10 @@ packages:
     resolution: {integrity: sha512-SA6YHH1r6DrioJ4fFJNqiwu1FweGFqJZO9KBApMzwPosoSGPOX2AW0wiMepOXjojjEXDuP9whIvckomheErbJA==}
     engines: {node: '>=18'}
 
+  express-validator@7.2.1:
+    resolution: {integrity: sha512-CjNE6aakfpuwGaHQZ3m8ltCG2Qvivd7RHtVMS/6nVxOM7xVGqr4bhflsm4+N5FP5zI7Zxp+Hae+9RE+o8e3ZOQ==}
+    engines: {node: '>= 8.0.0'}
+
   express@4.21.2:
     resolution: {integrity: sha512-28HqgMZAmih1Czt9ny7qr6ek2qddF4FclbMzwhCREB6OFfH+rXAnuNCwo1/wFvrtbgsQDb4kSbX9de9lFbrXnA==}
     engines: {node: '>= 0.10.0'}
@@ -554,6 +564,9 @@ packages:
   lodash.once@4.1.1:
     resolution: {integrity: sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==}
 
+  lodash@4.17.21:
+    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
+
   lru-cache@11.0.2:
     resolution: {integrity: sha512-123qHRfJBmo2jXDbo/a5YOQrJoHF/GNQTLzQ5+IdK5pWpceK17yRc6ozlWd25FxvGKQbIUs91fDFkXmDHTKcyA==}
     engines: {node: 20 || >=22}
@@ -657,9 +670,23 @@ packages:
       socks:
         optional: true
 
+  mongoose-lean-virtuals@1.1.0:
+    resolution: {integrity: sha512-QCuAvPUTGzUMjbvWqhA+3hXX7hP0PPJOW+hm50KN3gTPM89Uan/wrFyCfvsqW9giAGemtIFsBrZwiogmu2gxmA==}
+    engines: {node: '>=16.20.1'}
+    peerDependencies:
+      mongoose: '>=5.11.10'
+
+  mongoose-paginate-v2@1.9.0:
+    resolution: {integrity: sha512-al4rsqadzg4TXcJVWI5WSaNUuSpzdtcPbabwXxbA7Euh6swuLkrrHrBmlGI6d3I4RMStdRAoD7k6wvB/x5zvaw==}
+    engines: {node: '>=4.0.0'}
+
   mongoose@8.10.1:
     resolution: {integrity: sha512-5beTeBZnJNndRXU9rxPol0JmTWZMAtgkPbooROkGilswvrZALDERY4cJrGZmgGwDS9dl0mxiB7si+Mv9Yms2fg==}
     engines: {node: '>=16.20.1'}
+
+  mpath@0.8.4:
+    resolution: {integrity: sha512-DTxNZomBcTWlrMW76jy1wvV37X/cNNxPW1y2Jzd4DZkAaC5ZGsm8bfGfNOthcDuRJujXLqiuS6o3Tpy0JEoh7g==}
+    engines: {node: '>=4.0.0'}
 
   mpath@0.9.0:
     resolution: {integrity: sha512-ikJRQTk8hw5DEoFVxHG1Gn9T/xcjtdnOKIU1JTmGjZZlg9LST2mBLmcX3/ICIbgJydT2GOc15RnNy5mHmzfSew==}
@@ -945,6 +972,10 @@ packages:
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
     hasBin: true
+
+  validator@13.12.0:
+    resolution: {integrity: sha512-c1Q0mCiPlgdTVVVIJIrBuxNicYE+t/7oKeI9MWLj3fh/uq2Pxh/3eeWbVZ4OcGW1TUf53At0njHw5SMdA3tmMg==}
+    engines: {node: '>= 0.10'}
 
   vary@1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
@@ -1286,6 +1317,11 @@ snapshots:
 
   express-list-endpoints@7.1.1: {}
 
+  express-validator@7.2.1:
+    dependencies:
+      lodash: 4.17.21
+      validator: 13.12.0
+
   express@4.21.2:
     dependencies:
       accepts: 1.3.8
@@ -1577,6 +1613,8 @@ snapshots:
 
   lodash.once@4.1.1: {}
 
+  lodash@4.17.21: {}
+
   lru-cache@11.0.2: {}
 
   make-dir@3.1.0:
@@ -1639,6 +1677,17 @@ snapshots:
       bson: 6.10.2
       mongodb-connection-string-url: 3.0.2
 
+  mongoose-lean-virtuals@1.1.0(mongoose@8.10.1):
+    dependencies:
+      mongoose: 8.10.1
+      mpath: 0.8.4
+
+  mongoose-paginate-v2@1.9.0(mongoose@8.10.1):
+    dependencies:
+      mongoose-lean-virtuals: 1.1.0(mongoose@8.10.1)
+    transitivePeerDependencies:
+      - mongoose
+
   mongoose@8.10.1:
     dependencies:
       bson: 6.10.2
@@ -1657,6 +1706,8 @@ snapshots:
       - snappy
       - socks
       - supports-color
+
+  mpath@0.8.4: {}
 
   mpath@0.9.0: {}
 
@@ -1942,6 +1993,8 @@ snapshots:
   uuid@11.1.0: {}
 
   uuid@9.0.1: {}
+
+  validator@13.12.0: {}
 
   vary@1.1.2: {}
 

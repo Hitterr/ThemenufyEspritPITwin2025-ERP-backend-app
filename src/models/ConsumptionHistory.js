@@ -15,6 +15,12 @@ const consumptionHistorySchema = new Schema({
     required: [true, 'L\'ID de l\'ingrédient est requis'],
     index: true,
   },
+  ordreId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Order', 
+    required: true,
+  },
+
   qty: {
     type: Number,
     required: [true, 'La quantité utilisée est requise'],
