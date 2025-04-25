@@ -1,9 +1,15 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
-
 const supplierSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
+     ingredients: [
+        {
+          ingredientId: mongoose.Schema.Types.ObjectId,
+          price: Number,
+          deliveryTime: Number, 
+        }
+      ],
     contact: {
       email: { type: String, required: true, unique: true }, // Add unique index for email
       phone: String,
@@ -50,13 +56,10 @@ const supplierSchema = new mongoose.Schema(
   },
   { timestamps: true } // Add timestamps
 );
-
 // Indexes for better query performance
 supplierSchema.index({ "contact.email": 1 }, { unique: true });
 supplierSchema.index({ status: 1 });
 supplierSchema.index({ restaurantId: 1 });
-
 // Apply the pagination plugin
 supplierSchema.plugin(mongoosePaginate);
-
-module.exports = mongoose.model("Supplier", supplierSchema);
+module.exports =mongoose.models.Supplier || mongoose.model("Supplier", supplierSchema);
