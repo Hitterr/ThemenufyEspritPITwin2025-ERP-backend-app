@@ -17,7 +17,7 @@ const invoiceSchema = new mongoose.Schema({
   },
   supplier: {
     type: mongoose.Schema.Types.ObjectId,
-    //ref: "Supplier",
+    ref: "Supplier",
     required: true,
   },
   total: {
