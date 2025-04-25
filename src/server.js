@@ -26,8 +26,12 @@ app.use("/api/superadmins", require("@modules/superAdmin"));
 app.use("/api/restaurant", require("@modules/restaurant"));
 app.use("/api/admin", require("@modules/admin"));
 app.use("/api/ingredient", require("@modules/ingredient"));
+app.use("/api/invoice", require("@modules/invoice"));
+app.use("/api/storage", require("@modules/storage"));
 app.use("/api/supplier", require("@modules/supplier/routes/supplierRoutes"));
 app.use("/api/invoice", require("@modules/invoice"));
+app.use("/api/chatbot", require("./modules/supplierComparaison/routes/chatbotRoute")); 
+app.use("/api/suppliersComparaison", require("@modules/supplierComparaison"));
 // Start server
 const http = require("http");
 const { initSocket } = require("./config/socket");

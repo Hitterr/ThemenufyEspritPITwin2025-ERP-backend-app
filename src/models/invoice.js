@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-
 const invoiceSchema = new mongoose.Schema({
   invoiceNumber: {
     type: String,
@@ -18,7 +17,7 @@ const invoiceSchema = new mongoose.Schema({
   },
   supplier: {
     type: mongoose.Schema.Types.ObjectId,
-    // ref: "Supplier",
+    //ref: "Supplier",
     required: true,
   },
   total: {
@@ -27,7 +26,7 @@ const invoiceSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["pending", "paid", "cancelled"],
+    enum: ["pending", "delivered", "cancelled"],
     default: "pending",
   },
   createdAt: {
@@ -40,7 +39,7 @@ const invoiceSchema = new mongoose.Schema({
   },
   deliveredAt: {
     type: Date,
-    required: false, // Optional field; set to true if you want it to be required
+    default: null,
   },
 });
 
