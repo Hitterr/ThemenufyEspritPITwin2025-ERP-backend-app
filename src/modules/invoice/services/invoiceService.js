@@ -2,12 +2,20 @@ const Invoice = require("../../../models/invoice");
 const InvoiceItem = require("../../../models/invoiceItem");
 const invoiceItemService = require("./invoiceItemService");
 class InvoiceService {
-  async createInvoice({ userId, restaurant, supplier, items }) {
+  async createInvoice({
+    userId,
+    restaurant,
+    supplier,
+    items,
+    status = "pending",
+  }) {
     let invoice = new Invoice({
       created_by: userId,
       restaurant,
       supplier,
-      invoiceNumber: Date.now().toString(), // You might want a better number generation logic
+      status,
+      invoiceNumber: Date.now().toString(),
+      deliveredAt: status === "delivered" ? new Date() : null,
     });
 
     invoice = await invoice.save();
