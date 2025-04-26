@@ -30,8 +30,12 @@ app.use("/api/invoice", require("@modules/invoice"));
 app.use("/api/storage", require("@modules/storage"));
 app.use("/api/supplier", require("@modules/supplier/routes/supplierRoutes"));
 app.use("/api/invoice", require("@modules/invoice"));
-app.use("/api/chatbot", require("./modules/supplierComparaison/routes/chatbotRoute")); 
+app.use(
+	"/api/chatbot",
+	require("./modules/supplierComparaison/routes/chatbotRoute")
+);
 app.use("/api/suppliersComparaison", require("@modules/supplierComparaison"));
+app.use("/api/categories", require("@modules/category"));
 // Start server
 const http = require("http");
 const { initSocket } = require("./config/socket");

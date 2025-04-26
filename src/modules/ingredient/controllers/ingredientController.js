@@ -12,6 +12,7 @@ class IngredientController {
         data: result,
       });
     } catch (error) {
+      console.error(error);
       if (error instanceof yup.ValidationError) {
         return res.status(400).json({
           success: false,
@@ -28,10 +29,17 @@ class IngredientController {
 
   async getAllIngredients(req, res) {
     try {
-      const ingredients = await ingredientService.getAllIngredients();
+      const { limit, page } = req.query;
+      const data = await ingredientService.getAllIngredients(page, limit);
       return res.status(200).json({
         success: true,
-        data: ingredients,
+        data: data.ingredients,
+        pagination: {
+          currentPage: data.currentPage,
+          totalPages: data.totalPages,
+          totalItems: data.totalItems,
+          limit: data.limit,
+        },
       });
     } catch (error) {
       return res.status(500).json({
@@ -43,7 +51,9 @@ class IngredientController {
 
   async getIngredientById(req, res) {
     try {
-      const ingredient = await ingredientService.getIngredientById(req.params.id);
+      const ingredient = await ingredientService.getIngredientById(
+        req.params.id
+      );
       if (!ingredient) {
         return res.status(404).json({
           success: false,
@@ -125,7 +135,10 @@ class IngredientController {
         });
       }
 
-      const ingredient = await ingredientService.increaseQuantity(req.params.id, amount);
+      const ingredient = await ingredientService.increaseQuantity(
+        req.params.id,
+        amount
+      );
       return res.status(200).json({
         success: true,
         data: ingredient,
@@ -148,7 +161,10 @@ class IngredientController {
         });
       }
 
-      const ingredient = await ingredientService.decreaseQuantity(req.params.id, amount);
+      const ingredient = await ingredientService.decreaseQuantity(
+        req.params.id,
+        amount
+      );
       return res.status(200).json({
         success: true,
         data: ingredient,
