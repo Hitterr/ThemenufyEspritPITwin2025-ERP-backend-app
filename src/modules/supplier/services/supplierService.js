@@ -276,86 +276,31 @@ class SupplierService {
     };
   }
 
-  // Get all suppliers that provide a specific ingredient
-  static async getSuppliersByIngredient(ingredientId) {
-    if (!mongoose.Types.ObjectId.isValid(ingredientId)) {
-      throw new ValidationError("Invalid ingredient ID format");
+  static async getTopSuppliersByDeliveryTime({ startDate, endDate } = {}) {
+    // Validate dates if provided
+    let dateFilter = {};
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      if (isNaN(start) || isNaN(end)) {
+        throw new ValidationError("Invalid date format for startDate or endDate");
+      }
+      if (start > end) {
+        throw new ValidationError("startDate must be before endDate");
+      }
+      dateFilter = {
+        deliveredAt: { $gte: start, $lte: end },
+      };
     }
 
-    const ingredient = await Ingredient.findById(ingredientId);
-    if (!ingredient) throw new NotFoundError("Ingredient not found");
-
-    const suppliers = await SupplierIngredient.find({ ingredientId })
-      .populate("supplierId")
-      .sort({ pricePerUnit: 1 });
-    console.log("SupplierService.getSuppliersByIngredient - Count:", suppliers.length);
-    return suppliers;
-  }
-
-  // Get supplier status statistics
-  static async getSupplierStats() {
-    const stats = await Supplier.aggregate([
-      {
-        $facet: {
-          // Count suppliers by status
-          statusCounts: [
-            {
-              $group: {
-                _id: "$status",
-                count: { $sum: 1 },
-              },
-            },
-          ],
-          // Count unique restaurants linked to suppliers
-          restaurantsLinked: [
-            {
-              $match: {
-                restaurantId: { $ne: null },
-              },
-            },
-            {
-              $group: {
-                _id: null,
-                uniqueRestaurants: { $addToSet: "$restaurantId" },
-              },
-            },
-            {
-              $project: {
-                _id: "totalRestaurantsLinked",
-                count: { $size: "$uniqueRestaurants" },
-              },
-            },
-          ],
-        },
-      },
-      {
-        $project: {
-          data: {
-            $concatArrays: ["$statusCounts", "$restaurantsLinked"],
-          },
-        },
-      },
-      {
-        $unwind: "$data",
-      },
-      {
-        $replaceRoot: { newRoot: "$data" },
-      },
-    ]);
-
-    console.log("SupplierService.getSupplierStats - Stats:", stats);
-    return stats;
-  }
-
-  // Get top suppliers by average delivery time
-  static async getTopSuppliersByDeliveryTime() {
     const stats = await Invoice.aggregate([
-      // Step 1: Filter invoices that have been delivered
+      // Step 1: Filter invoices that have been delivered and match the date range
       {
         $match: {
+          status: "delivered", // Updated to match Invoice schema
           deliveredAt: { $ne: null },
           createdAt: { $ne: null },
-          status: { $in: ["paid", "pending"] },
+          ...dateFilter, // Apply date filter if provided
         },
       },
       // Step 2: Calculate delivery time for each invoice (in milliseconds)
