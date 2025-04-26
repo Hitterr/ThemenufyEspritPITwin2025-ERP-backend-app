@@ -221,7 +221,7 @@ const getSupplierStats = async (req, res) => {
       data: stats,
     });
   } catch (error) {
-    console.error("Error in getSupplierStats:", error.message); // Debug log
+    console.error("Error in getSupplierStats:", error.message);
     res.status(500).json({
       success: false,
       message: error.message,

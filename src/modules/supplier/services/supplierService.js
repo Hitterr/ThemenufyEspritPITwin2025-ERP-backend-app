@@ -371,6 +371,72 @@ class SupplierService {
     console.log("Number of suppliers returned:", stats.length);
     return stats;
   }
+  
+  static async getSupplierStats() {
+    try {
+      // Aggregate suppliers by status
+      const statusAggregation = await Supplier.aggregate([
+        {
+          $group: {
+            _id: "$status", // Group by status field
+            count: { $sum: 1 }, // Count the number of suppliers for each status
+          },
+        },
+      ]);
+  
+      // Aggregate total restaurants linked
+      const restaurantsAggregation = await Supplier.aggregate([
+        {
+          $match: {
+            restaurantId: { $ne: null }, // Ensure restaurantId exists
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalRestaurantsLinked: { $addToSet: "$restaurantId" }, // Use $addToSet to get unique restaurant IDs
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            totalRestaurantsLinked: { $size: "$totalRestaurantsLinked" }, // Count the unique restaurant IDs
+          },
+        },
+      ]);
+  
+      // Initialize default stats
+      const stats = {
+        active: 0,
+        pending: 0,
+        suspended: 0,
+        inactive: 0,
+        totalRestaurantsLinked: 0,
+      };
+  
+      // Populate stats from aggregation
+      statusAggregation.forEach(stat => {
+        if (stat._id === "active") stats.active = stat.count;
+        else if (stat._id === "pending") stats.pending = stat.count;
+        else if (stat._id === "suspended") stats.suspended = stat.count;
+        else if (stat._id === "inactive") stats.inactive = stat.count;
+      });
+  
+      // Add totalRestaurantsLinked
+      if (restaurantsAggregation.length > 0) {
+        stats.totalRestaurantsLinked = restaurantsAggregation[0].totalRestaurantsLinked || 0;
+      }
+  
+      console.log("SupplierService.getSupplierStats - Stats:", stats);
+      return statusAggregation.concat({
+        _id: "totalRestaurantsLinked",
+        count: stats.totalRestaurantsLinked,
+      });
+    } catch (error) {
+      console.error("Error in SupplierService.getSupplierStats:", error.message);
+      throw error;
+    }
+  }
 }
 
 module.exports = SupplierService;
