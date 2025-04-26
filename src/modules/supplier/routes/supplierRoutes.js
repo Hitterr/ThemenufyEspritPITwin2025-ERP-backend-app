@@ -17,6 +17,9 @@ router.get("/test", (req, res) =>
 // Stats route (static, defined early)
 router.get("/stats", supplierController.getSupplierStats);
 
+// New route for delivery stats
+router.get("/delivery-stats", supplierController.getTopSuppliersByDeliveryTime);
+
 // Supplier CRUD routes (static)
 router.post("/", validateSupplier, supplierController.createSupplier);
 router.get("/", supplierController.getAllSuppliers);

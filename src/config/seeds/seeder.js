@@ -5,6 +5,11 @@ const Admin = require("../../models/admin");
 const Employee = require("../../models/employee");
 const Restaurant = require("../../models/restaurant");
 const SuperAdmin = require("../../models/superAdmin");
+const Category = require("../../models/category");
+const Ingredient = require("../../models/ingredient");
+const SupplierIngredient = require("../../models/supplierIngredient");
+const Invoice = require("../../models/invoice");
+const InvoiceItem = require("../../models/invoiceItem");
 
 // Import seed data
 const users = require("./userSeeds");
@@ -13,6 +18,21 @@ const { employees } = require("./employeeSeeds");
 const { restaurants } = require("./restaurantSeeds");
 const superAdmins = require("./superAdminSeeds");
 const { hashPassword } = require("../../utils/hash");
+
+// Import new seed data
+const { categories } = require("./categorySeeds");
+const { ingredients } = require("./ingredientSeeds");
+const supplierIngredients = require("./supplierIngredientSeeds");
+const { invoices } = require("./invoiceSeeds");
+const invoiceItems = require("./invoiceItemSeeds");
+
+// Add new imports
+const ConsumptionHistory = require("../../models/ConsumptionHistory");
+const PriceHistory = require("../../models/PriceHistory");
+
+// Import new seed data
+const consumptionHistories = require("./consumptionHistorySeeds");
+const priceHistories = require("./priceHistorySeeds");
 
 const seedDatabase = async () => {
   try {
@@ -25,6 +45,13 @@ const seedDatabase = async () => {
     await Employee.deleteMany({});
     await Admin.deleteMany({});
     await SuperAdmin.deleteMany({});
+    await Category.deleteMany({}); // Add this line
+    await Ingredient.deleteMany({}); // Add this line
+    await SupplierIngredient.deleteMany({}); // Add this line
+    await Invoice.deleteMany({}); // Add this line
+    await InvoiceItem.deleteMany({}); // Add this line
+    await ConsumptionHistory.deleteMany({}); // Add this line
+    await PriceHistory.deleteMany({}); // Add this line
     console.log("Cleared existing data...");
 
     // Create restaurants first
@@ -74,6 +101,40 @@ const seedDatabase = async () => {
 
     await Employee.insertMany(employeesWithHashedPasswords);
     console.log("Employees seeded successfully!");
+
+    // Create categories
+    await Category.insertMany(categories);
+    console.log("Categories seeded successfully!");
+
+    // Create ingredients
+    await Ingredient.insertMany(ingredients);
+    console.log("Ingredients seeded successfully!");
+
+    // Create supplier ingredients
+    // Add to imports
+    const Supplier = require("../../models/supplier");
+    const { suppliers } = require("./supplierSeeds");
+
+    // Add to clearData section
+    await Supplier.deleteMany({});
+
+    // Add before supplier ingredients creation
+    // Create suppliers
+    await Supplier.insertMany(suppliers);
+    console.log("Suppliers seeded successfully!");
+    await SupplierIngredient.insertMany(supplierIngredients);
+    console.log("Supplier ingredients seeded successfully!");
+
+    // Create invoices
+    await Invoice.insertMany(invoices);
+    console.log("Invoices seeded successfully!");
+
+    // Create invoice items
+    await InvoiceItem.insertMany(invoiceItems);
+    console.log("Invoice items seeded successfully!");
+    // Add to clearData section
+    await ConsumptionHistory.insertMany(consumptionHistories);
+    await PriceHistory.insertMany(priceHistories);
 
     await mongoose.disconnect();
     console.log("Database seeding completed!");
