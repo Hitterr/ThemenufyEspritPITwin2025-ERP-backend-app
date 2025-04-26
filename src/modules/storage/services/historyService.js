@@ -1,7 +1,8 @@
     const ConsumptionHistory = require("../../../models/ConsumptionHistory");
+    const Order=require("../../../models/Ordre")
     const mongoose = require('mongoose');
 
-    exports.createConsumption = async (ingredientId, restaurantId, qty) => {
+    exports.createConsumption = async (ingredientId, restaurantId,ordreId, qty) => {
       const cleanId = (id, name) => {
         const trimmed = id.toString().trim();
         if (!mongoose.Types.ObjectId.isValid(trimmed)) {
@@ -12,10 +13,12 @@
 
       const iid = cleanId(ingredientId,  "ingredientId");
       const rid = cleanId(restaurantId, "restaurantId");
+      const oid=cleanId(ordreId,"ordreId");
 
       const newConsumption = new ConsumptionHistory({
         ingredientId: iid,
         restaurantId:  rid,
+        ordreId:oid,
         qty
       });
 
@@ -29,7 +32,7 @@
 
 
 
-    exports.getConsumptions = async (restaurantId, ingredientId) => {
+    exports.getConsumptions = async (restaurantId, ingredientId,ordreId) => {
       const query = {};
 
       // Fonction utilitaire pour nettoyer et valider un ID
@@ -45,15 +48,19 @@
       // Nettoyage / validation
       const rid = cleanId(restaurantId, "restaurantId");
       const iid = cleanId(ingredientId,  "ingredientId");
+      const oid=cleanId(ordreId,"ordreId");
 
       if (rid) query.restaurantId  = rid;
       if (iid) query.ingredientId  = iid;
+      if(oid) query.ordreId=oid;
+
 
       try {
         return await ConsumptionHistory
           .find(query)
           .populate("ingredientId")
-          .populate("restaurantId");
+          .populate("restaurantId")
+          .populate("ordreId");
       } catch (err) {
         console.error("Erreur lors de la récupération des consommations:", err);
         throw err;

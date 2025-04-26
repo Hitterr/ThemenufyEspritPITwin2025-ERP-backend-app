@@ -2,22 +2,22 @@ const priceHistoryService = require("../services/PriceHistoryService");
 
 exports.createPriceHistory = async (req, res) => {
   try {
-    const { ingredientId, restaurantId, price, supplierId } = req.body;
+    const { ingredientId, restaurantId, price, invoiceId, supplierId } = req.body;
 
     // Vérification des entrées requises
-    if (!ingredientId || !restaurantId || price === undefined) {
+    if (!ingredientId || !restaurantId || price === undefined || !invoiceId) {
       return res.status(400).json({ 
-        message: "Les paramètres ingredientId, restaurantId et price sont requis." 
+        message: "Les paramètres ingredientId, restaurantId, invoiceId et price sont requis." 
       });
     }
 
-    // Appel au service
-    const result = await priceHistoryService.createPriceHistory(
+    const result = await priceHistoryService.createPriceHistory({
       ingredientId,
       restaurantId,
+      invoiceId,
       price,
       supplierId
-    );
+    });
 
     res.status(201).json(result);
   } catch (err) {
@@ -32,20 +32,21 @@ exports.createPriceHistory = async (req, res) => {
 
 exports.getPriceHistories = async (req, res) => {
   try {
-    const { restaurantId, ingredientId, supplierId } = req.query;
+    const { restaurantId, ingredientId, supplierId, invoiceId } = req.query;
 
     // Au moins un filtre doit être présent
-    if (!restaurantId && !ingredientId && !supplierId) {
+    if (!restaurantId && !ingredientId && !supplierId && !invoiceId) {
       return res.status(400).json({ 
-        message: "Au moins un filtre (restaurantId, ingredientId ou supplierId) doit être fourni." 
+        message: "Au moins un filtre doit être fourni." 
       });
     }
 
-    const results = await priceHistoryService.getPriceHistories(
+    const results = await priceHistoryService.getPriceHistories({
       restaurantId,
       ingredientId,
-      supplierId
-    );
+      supplierId,
+      invoiceId
+    });
 
     res.status(200).json(results);
   } catch (err) {
@@ -70,11 +71,11 @@ exports.getDailyPriceTrends = async (req, res) => {
       });
     }
 
-    const data = await priceHistoryService.getDailyPriceTrends(
+    const data = await priceHistoryService.getDailyPriceTrends({
       ingredientId,
       restaurantId,
       days
-    );
+    });
 
     res.status(200).json(data);
   } catch (err) {
@@ -85,8 +86,3 @@ exports.getDailyPriceTrends = async (req, res) => {
     });
   }
 };
-
-
-
-
-;
