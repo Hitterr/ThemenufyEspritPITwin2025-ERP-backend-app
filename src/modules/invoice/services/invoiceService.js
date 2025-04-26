@@ -26,7 +26,18 @@ class InvoiceService {
 				...item,
 			})
 		);
+		const priceHistoryPromises = items.map((item) => {
+			const priceHistoryData = {
+				restaurantId: restaurant,
+				supplierId: supplier,
+				ingredientId: item.ingredient,
+				invoiceId: invoice._id,
+				price: item.price,
+			};
+			return PriceHistory.create(priceHistoryData);
+		});
 		await Promise.all(itemPromises);
+		await Promise.all(priceHistoryPromises);
 		items = await invoiceItemService.getItemsByInvoiceId(invoice._id);
 		invoice.total = items.reduce((sum, item) => {
 			const total = sum + item.price * item.quantity;

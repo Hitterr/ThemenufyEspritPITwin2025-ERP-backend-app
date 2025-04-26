@@ -17,7 +17,7 @@ const consumptionHistorySchema = new Schema({
 	ordreId: {
 		type: Schema.Types.ObjectId,
 		ref: "Order",
-		required: true,
+		required: false,
 	},
 	qty: {
 		type: Number,
