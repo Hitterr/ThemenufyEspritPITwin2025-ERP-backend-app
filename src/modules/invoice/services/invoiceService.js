@@ -107,5 +107,62 @@ class InvoiceService {
     await PriceHistory.deleteMany({ invoiceId: invoiceId });
     return invoice;
   }
+
+  async getInvoiceStats({ period = "day", startDate, endDate }) {
+    const groupByField = this.getGroupByField(period);
+    const matchStage =
+      startDate && endDate
+        ? {
+            createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) },
+          }
+        : {};
+    const stats = await Invoice.aggregate([
+      { $match: matchStage },
+      {
+        $group: {
+          _id: groupByField,
+          totalInvoices: { $sum: 1 },
+          paidInvoices: {
+            $sum: { $cond: [{ $eq: ["$paidStatus", "paid"] }, 1, 0] },
+          },
+          pendingInvoices: {
+            $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] },
+          },
+          cancelledInvoices: {
+            $sum: { $cond: [{ $eq: ["$status", "cancelled"] }, 1, 0] },
+          },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    return stats;
+  }
+
+  getGroupByField(period) {
+    switch (period) {
+      case "week":
+        return { $isoWeek: "$createdAt" };
+      case "month":
+        return { $month: "$createdAt" };
+      case "year":
+        return { $year: "$createdAt" };
+      default:
+        return { $dayOfYear: "$createdAt" };
+    }
+  }
+
+  getPeriodFormat(period) {
+    switch (period) {
+      case "week":
+        return "%Y-W%U";
+      case "month":
+        return "%Y-%m";
+      case "year":
+        return "%Y";
+      default:
+        return "%Y-%m-%d";
+    }
+  }
 }
 module.exports = new InvoiceService();

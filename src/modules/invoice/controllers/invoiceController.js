@@ -122,6 +122,29 @@ const deleteInvoice = async (req, res) => {
   }
 };
 
+const getInvoiceStats = async (req, res) => {
+  try {
+    const { period = "day", startDate, endDate } = req.query;
+
+    // Appeler le service pour obtenir les statistiques
+    const stats = await invoiceService.getInvoiceStats({
+      period,
+      startDate,
+      endDate,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createInvoice,
   getInvoices,
@@ -129,4 +152,5 @@ module.exports = {
   updateInvoiceStatus,
   deleteInvoice,
   updateInvoicePaidStatus,
+  getInvoiceStats,
 };

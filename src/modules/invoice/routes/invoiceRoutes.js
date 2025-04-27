@@ -5,6 +5,11 @@ const invoiceItemController = require("../controllers/invoiceItemController");
 const authMiddleware = require("@middlewares/authMiddleware");
 
 // Invoice routes
+router.get(
+  "/stats",
+  authMiddleware.verifyToken,
+  invoiceController.getInvoiceStats
+);
 router.post("/", authMiddleware.verifyToken, invoiceController.createInvoice);
 router.get("/", authMiddleware.verifyToken, invoiceController.getInvoices);
 router.get(
