@@ -116,27 +116,72 @@ class InvoiceService {
             createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) },
           }
         : {};
+
+    // Aggregate data for both charts
     const stats = await Invoice.aggregate([
       { $match: matchStage },
       {
-        $group: {
-          _id: groupByField,
-          totalInvoices: { $sum: 1 },
-          paidInvoices: {
-            $sum: { $cond: [{ $eq: ["$paidStatus", "paid"] }, 1, 0] },
-          },
-          pendingInvoices: {
-            $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] },
-          },
-          cancelledInvoices: {
-            $sum: { $cond: [{ $eq: ["$status", "cancelled"] }, 1, 0] },
-          },
+        $facet: {
+          // Radial Bar Chart Data (total counts by status)
+          statusCounts: [
+            {
+              $group: {
+                _id: "$status",
+                count: { $sum: 1 },
+              },
+            },
+          ],
+          // Line Chart Data (counts by period, status, and paidStatus)
+          periodCounts: [
+            {
+              $group: {
+                _id: {
+                  period: groupByField,
+                  status: "$status",
+                  paidStatus: "$paidStatus",
+                },
+                count: { $sum: 1 },
+              },
+            },
+            { $sort: { "_id.period": 1 } },
+          ],
         },
       },
-      { $sort: { _id: 1 } },
     ]);
 
-    return stats;
+    // Transform radial bar chart data
+    const statusCounts = {};
+    stats[0].statusCounts.forEach((item) => {
+      statusCounts[item._id] = item.count;
+    });
+
+    // Transform line chart data
+    const periodCounts = {};
+    stats[0].periodCounts.forEach((item) => {
+      const { period, status, paidStatus } = item._id;
+      if (!periodCounts[period]) {
+        periodCounts[period] = {};
+      }
+      if (!periodCounts[period][status]) {
+        periodCounts[period][status] = { paid: 0, nopaid: 0 };
+      }
+      periodCounts[period][status][paidStatus] = item.count;
+    });
+
+    return {
+      success: true,
+      data: {
+        statusCounts: {
+          pending: statusCounts.pending || 0,
+          delivered: statusCounts.delivered || 0,
+          cancelled: statusCounts.cancelled || 0,
+        },
+        periodCounts: Object.keys(periodCounts).map((period) => ({
+          period,
+          ...periodCounts[period],
+        })),
+      },
+    };
   }
 
   getGroupByField(period) {
