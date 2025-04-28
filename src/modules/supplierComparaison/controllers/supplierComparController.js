@@ -1,4 +1,4 @@
-const Ingredient = require("../../../models/Ingredient");
+const Ingredient = require("../../../models/ingredient");
 const Supplier = require("../../../models/supplier");
 
 class SupplierController {

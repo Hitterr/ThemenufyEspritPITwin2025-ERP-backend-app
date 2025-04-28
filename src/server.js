@@ -36,7 +36,7 @@ app.use(
 );
 app.use("/api/suppliersComparaison", require("@modules/supplierComparaison"));
 app.use("/api/categories", require("@modules/category"));
-// Start server
+app.use("/api/recipe", require("@modules/recipe/routes/recipeRoutes"));
 const http = require("http");
 const { initSocket } = require("./config/socket");
 // Create HTTP server
