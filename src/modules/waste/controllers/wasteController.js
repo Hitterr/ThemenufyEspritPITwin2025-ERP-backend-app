@@ -43,6 +43,33 @@ class WasteController {
       res.status(500).json({ error: error.message });
     }
   }
+  async getWastePercentage(req, res) {
+    try {
+      const { restaurantId } = req.query;
+      const { startDate, endDate, category } = req.query;
+
+      if (!restaurantId) {
+        return res.status(400).json({ error: 'restaurantId is required' });
+      }
+
+      const result = await wasteService.calculateWastePercentage(restaurantId, {
+        startDate,
+        endDate,
+        category
+      });
+
+      res.json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      console.error('Error in getWastePercentage:', error);
+      res.status(500).json({ 
+        success: false,
+        error: error.message || 'Internal server error'
+      });
+    }
+  }
 }
 
 module.exports = new WasteController();
