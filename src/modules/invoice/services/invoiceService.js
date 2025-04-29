@@ -193,7 +193,7 @@ class InvoiceService {
       case "year":
         return { $year: "$createdAt" };
       default:
-        return { $dayOfYear: "$createdAt" };
+        return { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
     }
   }
 
