@@ -4,15 +4,16 @@ const { invoiceSchema } = require("../validators/invoiceValidator");
 const createInvoice = async (req, res) => {
   try {
     const { userId } = req.user;
-    const { restaurant, supplier, items } = req.body;
+    const { restaurant, supplier, items, status } = req.body;
 
-    await invoiceSchema.validate({ restaurant, supplier, items });
+    await invoiceSchema.validate({ restaurant, supplier, items, status });
 
     const invoice = await invoiceService.createInvoice({
       userId,
       restaurant,
       supplier,
       items,
+      status,
     });
 
     res.status(201).json({

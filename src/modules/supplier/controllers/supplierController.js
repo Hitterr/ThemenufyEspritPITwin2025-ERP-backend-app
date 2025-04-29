@@ -221,7 +221,7 @@ const getSupplierStats = async (req, res) => {
       data: stats,
     });
   } catch (error) {
-    console.error("Error in getSupplierStats:", error.message); // Debug log
+    console.error("Error in getSupplierStats:", error.message);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -280,6 +280,36 @@ const bulkUpdateSupplierIngredients = async (req, res) => {
     });
   }
 };
+const getTopSuppliersByDeliveryTime = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    // Validate that startDate and endDate are provided
+    if (!startDate || !endDate) {
+      return res.status(400).json({
+        success: false,
+        message: "startDate and endDate query parameters are required",
+      });
+    }
+
+    const stats = await supplierService.getTopSuppliersByDeliveryTime({
+      startDate,
+      endDate,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    console.error("Error in getTopSuppliersByDeliveryTime:", error.message);
+    const statusCode = error instanceof ValidationError ? 400 : 500;
+    res.status(statusCode).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 module.exports = {
   createSupplier,
@@ -293,4 +323,5 @@ module.exports = {
   getSupplierStats,
   unlinkIngredient,
   bulkUpdateSupplierIngredients,
+  getTopSuppliersByDeliveryTime,
 };

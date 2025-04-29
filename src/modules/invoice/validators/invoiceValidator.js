@@ -15,7 +15,7 @@ const invoiceSchema = yup.object().shape({
 const updateInvoiceStatusSchema = yup.object().shape({
 	status: yup
 		.string()
-		.oneOf(["pending", "paid", "cancelled"])
+		.oneOf(["pending", "delivered", "cancelled"]) // Updated to match Invoice schema
 		.required("Status is required"),
 });
 module.exports = {
