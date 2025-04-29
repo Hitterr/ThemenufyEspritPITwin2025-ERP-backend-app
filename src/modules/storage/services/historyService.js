@@ -2,7 +2,7 @@
     const Order=require("../../../models/Ordre")
     const mongoose = require('mongoose');
 
-    exports.createConsumption = async (ingredientId, restaurantId,ordreId, qty) => {
+    exports.createConsumption = async (ingredientId, restaurantId,ordreId, qty,wastageQty) => {
       const cleanId = (id, name) => {
         const trimmed = id.toString().trim();
         if (!mongoose.Types.ObjectId.isValid(trimmed)) {
@@ -19,7 +19,8 @@
         ingredientId: iid,
         restaurantId:  rid,
         ordreId:oid,
-        qty
+        qty,
+        wastageQty
       });
 
       try {

@@ -2,14 +2,14 @@ const historyService = require("../services/historyService");
 exports.createConsumption = async (req, res) => {
 	try {
 		const { restaurantId, ingredientId, ordreId } = req.body; // Utiliser req.body pour récupérer les données
-		const { qty } = req.body;
+		const { qty,wastageQty } = req.body;
 		// Vérification des entrées
-		if (!restaurantId || !ingredientId || !ordreId || !qty) {
+		if (!restaurantId || !ingredientId || !ordreId || !qty ||!wastageQty) {
 			return res
 				.status(400)
 				.json({
 					message:
-						"Tous les paramètres (restaurantId, ingredientId,ordreId, qty) sont requis.",
+						"Tous les paramètres (restaurantId, ingredientId,ordreId, qty,wastageQty) sont requis.",
 				});
 		}
 		// Appel à la fonction de création
@@ -17,7 +17,8 @@ exports.createConsumption = async (req, res) => {
 			ingredientId,
 			restaurantId,
 			ordreId,
-			qty
+			qty,
+			wastageQty
 		);
 		res.status(201).json(result);
 	} catch (err) {
