@@ -8,14 +8,14 @@ const {
 // Create a new supplier
 const createSupplier = async (req, res) => {
   try {
-    console.log("Creating supplier with data:", req.body); // Debug log
+    console.log("Creating supplier with data:", req.body);
     const supplier = await supplierService.createSupplier(req.body);
     res.status(201).json({
       success: true,
       data: supplier,
     });
   } catch (error) {
-    console.error("Error in createSupplier:", error.message); // Debug log
+    console.error("Error in createSupplier:", error.message);
     const statusCode =
       error instanceof ConflictError
         ? 409
@@ -47,7 +47,7 @@ const getAllSuppliers = async (req, res) => {
       pagination: result.pagination,
     });
   } catch (error) {
-    console.error("Error in getAllSuppliers:", error.message); // Debug log
+    console.error("Error in getAllSuppliers:", error.message);
     const statusCode = error instanceof ValidationError ? 400 : 500;
     res.status(statusCode).json({
       success: false,
@@ -65,7 +65,7 @@ const getSupplierById = async (req, res) => {
       data: supplier,
     });
   } catch (error) {
-    console.error("Error in getSupplierById:", error.message); // Debug log
+    console.error("Error in getSupplierById:", error.message);
     const statusCode =
       error instanceof NotFoundError
         ? 404
@@ -82,7 +82,7 @@ const getSupplierById = async (req, res) => {
 // Update a supplier
 const updateSupplier = async (req, res) => {
   try {
-    console.log("Updating supplier with ID:", req.params.supplierId, "Data:", req.body); // Debug log
+    console.log("Updating supplier with ID:", req.params.supplierId, "Data:", req.body);
     const supplier = await supplierService.updateSupplier(
       req.params.supplierId,
       req.body
@@ -92,7 +92,7 @@ const updateSupplier = async (req, res) => {
       data: supplier,
     });
   } catch (error) {
-    console.error("Error in updateSupplier:", error.message); // Debug log
+    console.error("Error in updateSupplier:", error.message);
     const statusCode =
       error instanceof NotFoundError
         ? 404
@@ -117,7 +117,7 @@ const deleteSupplier = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error("Error in deleteSupplier:", error.message); // Debug log
+    console.error("Error in deleteSupplier:", error.message);
     const statusCode =
       error instanceof NotFoundError
         ? 404
@@ -146,7 +146,7 @@ const linkIngredient = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error("Error in linkIngredient:", error.message); // Debug log
+    console.error("Error in linkIngredient:", error.message);
     const statusCode =
       error instanceof NotFoundError
         ? 404
@@ -173,7 +173,7 @@ const getSupplierIngredients = async (req, res) => {
       data: supplierIngredients,
     });
   } catch (error) {
-    console.error("Error in getSupplierIngredients:", error.message); // Debug log
+    console.error("Error in getSupplierIngredients:", error.message);
     const statusCode =
       error instanceof NotFoundError
         ? 404
@@ -181,48 +181,6 @@ const getSupplierIngredients = async (req, res) => {
         ? 400
         : 500;
     res.status(statusCode).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// Get suppliers by ingredient
-const getSuppliersByIngredient = async (req, res) => {
-  try {
-    const suppliers = await supplierService.getSuppliersByIngredient(
-      req.params.ingredientId
-    );
-    res.status(200).json({
-      success: true,
-      data: suppliers,
-    });
-  } catch (error) {
-    console.error("Error in getSuppliersByIngredient:", error.message); // Debug log
-    const statusCode =
-      error instanceof NotFoundError
-        ? 404
-        : error instanceof ValidationError
-        ? 400
-        : 500;
-    res.status(statusCode).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// Get supplier statistics
-const getSupplierStats = async (req, res) => {
-  try {
-    const stats = await supplierService.getSupplierStats();
-    res.status(200).json({
-      success: true,
-      data: stats,
-    });
-  } catch (error) {
-    console.error("Error in getSupplierStats:", error.message);
-    res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -239,7 +197,7 @@ const unlinkIngredient = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error("Error in unlinkIngredient:", error.message); // Debug log
+    console.error("Error in unlinkIngredient:", error.message);
     const statusCode =
       error instanceof NotFoundError
         ? 404
@@ -267,7 +225,7 @@ const bulkUpdateSupplierIngredients = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error("Error in bulkUpdateSupplierIngredients:", error.message); // Debug log
+    console.error("Error in bulkUpdateSupplierIngredients:", error.message);
     const statusCode =
       error instanceof NotFoundError
         ? 404
@@ -280,11 +238,12 @@ const bulkUpdateSupplierIngredients = async (req, res) => {
     });
   }
 };
+
+// Get top suppliers by delivery time
 const getTopSuppliersByDeliveryTime = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
-    // Validate that startDate and endDate are provided
     if (!startDate || !endDate) {
       return res.status(400).json({
         success: false,
@@ -311,6 +270,23 @@ const getTopSuppliersByDeliveryTime = async (req, res) => {
   }
 };
 
+// Get supplier statistics
+const getSupplierStats = async (req, res) => {
+  try {
+    const stats = await supplierService.getSupplierStats();
+    res.status(200).json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    console.error("Error in getSupplierStats:", error.message);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createSupplier,
   getAllSuppliers,
@@ -319,9 +295,8 @@ module.exports = {
   deleteSupplier,
   linkIngredient,
   getSupplierIngredients,
-  getSuppliersByIngredient,
-  getSupplierStats,
   unlinkIngredient,
   bulkUpdateSupplierIngredients,
   getTopSuppliersByDeliveryTime,
+  getSupplierStats,
 };
