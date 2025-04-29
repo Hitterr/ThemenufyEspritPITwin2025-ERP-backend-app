@@ -18,8 +18,11 @@ class IngredientService {
 		if (filters?.type) {
 			query.type = filters?.type;
 		}
-		if (filters?.availability !== undefined) {
-			query.disponibility = filters?.availability === "true";
+		if (
+			filters?.availability !== undefined &&
+			filters?.availability.toLowerCase() !== "all"
+		) {
+			query.disponibility = filters?.availability === "Available";
 		}
 		if (filters?.minPrice) {
 			query.price = { ...query.price, $gte: parseFloat(filters?.minPrice) };
