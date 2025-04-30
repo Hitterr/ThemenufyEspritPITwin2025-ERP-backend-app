@@ -1,11 +1,11 @@
-const Ingredient = require("../../../models/ingredient");
+const Stock = require("../../../models/Stock");
 // assuming you have it for population
 const getStockAnalysis = async (req, res) => {
 	try {
-		// 1. Total number of ingredients
-		const totalIngredients = await Ingredient.countDocuments();
+		// 1. Total number of stocks
+		const totalStocks = await Stock.countDocuments();
 		// 2. Total stock value
-		const totalStockValueAgg = await Ingredient.aggregate([
+		const totalStockValueAgg = await Stock.aggregate([
 			{
 				$group: {
 					_id: null,
@@ -17,7 +17,7 @@ const getStockAnalysis = async (req, res) => {
 		]);
 		const totalStockValue = totalStockValueAgg[0]?.totalValue || 0;
 		// 3. Average price
-		const averagePriceAgg = await Ingredient.aggregate([
+		const averagePriceAgg = await Stock.aggregate([
 			{
 				$group: {
 					_id: null,
@@ -26,20 +26,20 @@ const getStockAnalysis = async (req, res) => {
 			},
 		]);
 		const averagePrice = averagePriceAgg[0]?.avgPrice || 0;
-		// 4. Ingredients below minimum quantity
-		const lowStockCount = await Ingredient.countDocuments({
+		// 4. Stocks below minimum quantity
+		const lowStockCount = await Stock.countDocuments({
 			$expr: { $lt: ["$quantity", "$minQty"] },
 		});
-		// 5. Ingredients at or above max quantity
-		const atMaxStockCount = await Ingredient.countDocuments({
+		// 5. Stocks at or above max quantity
+		const atMaxStockCount = await Stock.countDocuments({
 			$expr: { $gte: ["$quantity", "$maxQty"] },
 		});
-		// 6. Out of stock or unavailable ingredients
-		const outOfStockCount = await Ingredient.countDocuments({
+		// 6. Out of stock or unavailable stocks
+		const outOfStockCount = await Stock.countDocuments({
 			$or: [{ quantity: { $eq: 0 } }, { disponibility: false }],
 		});
-		// 7. Ingredient count per category
-		const ingredientPerCategory = await Ingredient.aggregate([
+		// 7. Stock count per category
+		const stockPerCategory = await Stock.aggregate([
 			{
 				$group: {
 					_id: "$type",
@@ -66,7 +66,7 @@ const getStockAnalysis = async (req, res) => {
 			},
 		]);
 		// 8. Stock value per category
-		const stockValuePerCategory = await Ingredient.aggregate([
+		const stockValuePerCategory = await Stock.aggregate([
 			{
 				$group: {
 					_id: "$type",
@@ -92,19 +92,19 @@ const getStockAnalysis = async (req, res) => {
 				},
 			},
 		]);
-		// 9. List of low stock ingredients
-		const lowStockList = await Ingredient.find({
+		// 9. List of low stock stocks
+		const lowStockList = await Stock.find({
 			$expr: { $lt: ["$quantity", "$minQty"] },
 		})
 			.sort({ quantity: 1 })
 			.select("libelle quantity minQty unit");
-		// 10. Recently updated ingredients
-		const recentlyUpdated = await Ingredient.find()
+		// 10. Recently updated stocks
+		const recentlyUpdated = await Stock.find()
 			.sort({ updatedAt: -1 })
 			.limit(5)
 			.select("libelle updatedAt");
 		// 11. Unit distribution
-		const unitDistribution = await Ingredient.aggregate([
+		const unitDistribution = await Stock.aggregate([
 			{
 				$group: {
 					_id: "$unit",
@@ -112,8 +112,8 @@ const getStockAnalysis = async (req, res) => {
 				},
 			},
 		]);
-		// 12. Top 5 most expensive ingredients
-		const mostExpensive = await Ingredient.find()
+		// 12. Top 5 most expensive stocks
+		const mostExpensive = await Stock.find()
 			.sort({ price: -1 })
 			.limit(5)
 			.select("libelle price unit");
@@ -121,13 +121,13 @@ const getStockAnalysis = async (req, res) => {
 		res.json({
 			success: true,
 			data: {
-				totalIngredients,
+				totalStocks,
 				totalStockValue,
 				averagePrice,
 				lowStockCount,
 				atMaxStockCount,
 				outOfStockCount,
-				ingredientPerCategory,
+				stockPerCategory,
 				stockValuePerCategory,
 				lowStockList,
 				recentlyUpdated,
@@ -136,7 +136,7 @@ const getStockAnalysis = async (req, res) => {
 			},
 		});
 	} catch (err) {
-		console.error("Error fetching ingredient stats:", err);
+		console.error("Error fetching Stock stats:", err);
 		res.status(500).json({ error: "Internal server error" });
 	}
 };
