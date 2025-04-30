@@ -1,7 +1,8 @@
 const { MongoClient } = require("mongodb"); // Add this import
 
 class RecipeController {
-  async getAllRecipes(req, res) { // Changed method name to match endpoint
+  async getAllRecipes(req, res) {
+    // Changed method name to match endpoint
     try {
       const client = new MongoClient("mongodb://localhost:27017");
       await client.connect();
@@ -11,10 +12,10 @@ class RecipeController {
         .aggregate([
           {
             $lookup: {
-              from: "ingredients",
-              localField: "items.ingredientId",
+              from: "stocks",
+              localField: "items.stockId",
               foreignField: "_id",
-              as: "ingredientDetails",
+              as: "stockDetails",
             },
           },
           {
@@ -27,11 +28,14 @@ class RecipeController {
                     $mergeObjects: [
                       "$$item",
                       {
-                        ingredientId: {
+                        stockId: {
                           $arrayElemAt: [
-                            "$ingredientDetails",
+                            "$stockDetails",
                             {
-                              $indexOfArray: ["$ingredientDetails._id", "$$item.ingredientId"],
+                              $indexOfArray: [
+                                "$stockDetails._id",
+                                "$$item.stockId",
+                              ],
                             },
                           ],
                         },
@@ -42,7 +46,7 @@ class RecipeController {
               },
             },
           },
-          { $project: { ingredientDetails: 0 } },
+          { $project: { stockDetails: 0 } },
         ])
         .toArray();
       await client.close();

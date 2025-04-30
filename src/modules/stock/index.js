@@ -1,9 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const ingredientRoutes = require("./routes/ingredientRoutes");
-const bulkRoutes = require("./routes/bulkIngredientRoutes");
+const stockRoutes = require("./routes/stockRoutes");
 const { verifyToken } = require("../../middlewares/authMiddleware");
 // router.use("/", verifyToken, stockRoutes);
-router.use("/", ingredientRoutes);
-router.use("/", bulkRoutes);
+router.use("/", stockRoutes);
+
 module.exports = router;
