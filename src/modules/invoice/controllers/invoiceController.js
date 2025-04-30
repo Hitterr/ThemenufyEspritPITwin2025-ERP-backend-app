@@ -4,9 +4,15 @@ const { invoiceSchema } = require("../validators/invoiceValidator");
 const createInvoice = async (req, res) => {
   try {
     const { userId } = req.user;
-    const { restaurant, supplier, items, status } = req.body;
+    const { restaurant, supplier, items, status, paidStatus } = req.body;
 
-    await invoiceSchema.validate({ restaurant, supplier, items, status });
+    await invoiceSchema.validate({
+      restaurant,
+      supplier,
+      items,
+      status,
+      paidStatus,
+    });
 
     const invoice = await invoiceService.createInvoice({
       userId,
@@ -14,6 +20,7 @@ const createInvoice = async (req, res) => {
       supplier,
       items,
       status,
+      paidStatus,
     });
 
     res.status(201).json({
@@ -77,6 +84,28 @@ const updateInvoiceStatus = async (req, res) => {
     });
   }
 };
+const updateInvoicePaidStatus = async (req, res) => {
+  try {
+    const { invoiceId } = req.params;
+    const { paidStatus } = req.body;
+
+    const invoice = await invoiceService.updatePaidStatus(
+      invoiceId,
+      paidStatus
+    );
+
+    res.status(200).json({
+      success: true,
+      data: invoice,
+      message: "Invoice paid status updated successfully",
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 const deleteInvoice = async (req, res) => {
   try {
     const { invoiceId } = req.params;
@@ -93,10 +122,35 @@ const deleteInvoice = async (req, res) => {
   }
 };
 
+const getInvoiceStats = async (req, res) => {
+  try {
+    const { period = "day", startDate, endDate } = req.query;
+
+    // Appeler le service pour obtenir les statistiques
+    const stats = await invoiceService.getInvoiceStats({
+      period,
+      startDate,
+      endDate,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createInvoice,
   getInvoices,
   getInvoice,
   updateInvoiceStatus,
   deleteInvoice,
+  updateInvoicePaidStatus,
+  getInvoiceStats,
 };

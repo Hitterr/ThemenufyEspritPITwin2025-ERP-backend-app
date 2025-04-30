@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const Supplier = require("../../../models/supplier");
 const Ingredient = require("../../../models/ingredient");
-const SupplierIngredient = require("../../../models/supplierIngredient");
 const Invoice = require("../../../models/invoice");
 const {
   NotFoundError,
@@ -85,7 +84,9 @@ class SupplierService {
       throw new ValidationError("Invalid supplier ID format");
     }
 
-    const supplier = await Supplier.findById(id).populate("restaurantId");
+    const supplier = await Supplier.findById(id)
+      .populate("restaurantId")
+      .populate("ingredients.ingredientId");
 
     if (!supplier) {
       throw new NotFoundError("Supplier not found");
@@ -114,7 +115,7 @@ class SupplierService {
     const supplier = await Supplier.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
-    });
+    }).populate("ingredients.ingredientId");
 
     if (!supplier) {
       throw new NotFoundError("Supplier not found");
@@ -123,7 +124,7 @@ class SupplierService {
     return supplier;
   }
 
-  // Delete supplier and related data
+  // Delete supplier
   static async deleteSupplier(id) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new ValidationError("Invalid supplier ID format");
@@ -134,20 +135,15 @@ class SupplierService {
       throw new NotFoundError("Supplier not found");
     }
 
-    // Delete related supplier-ingredient links
-    await SupplierIngredient.deleteMany({ supplierId: id });
-
-    // Delete supplier
     await Supplier.deleteOne({ _id: id });
-
     console.log("SupplierService.deleteSupplier - Deleted:", id);
     return {
       success: true,
-      message: "Supplier and all related data deleted successfully",
+      message: "Supplier deleted successfully",
     };
   }
 
-  // Link ingredient to supplier with enhanced checks
+  // Link ingredient to supplier by adding to ingredients array
   static async linkIngredient(supplierId, ingredientId, pricePerUnit, leadTimeDays) {
     if (
       !mongoose.Types.ObjectId.isValid(supplierId) ||
@@ -164,32 +160,35 @@ class SupplierService {
     if (!supplier) throw new NotFoundError("Supplier not found");
     if (!ingredient) throw new NotFoundError("Ingredient not found");
 
-    const existingLink = await SupplierIngredient.findOne({
-      supplierId,
-      ingredientId,
-    });
+    // Check if ingredient is already linked
+    const existingLink = supplier.ingredients.find(
+      (ing) => ing.ingredientId.toString() === ingredientId
+    );
 
     if (existingLink) {
       throw new ConflictError("Supplier is already linked to this ingredient");
     }
 
-    const supplierIngredient = new SupplierIngredient({
-      supplierId,
+    // Add new ingredient to the supplier's ingredients array
+    supplier.ingredients.push({
       ingredientId,
       pricePerUnit,
       leadTimeDays,
     });
 
-    const savedLink = await supplierIngredient.save();
-    console.log("SupplierService.linkIngredient - Linked:", savedLink._id);
-    return savedLink;
+    const updatedSupplier = await supplier.save();
+    console.log("SupplierService.linkIngredient - Linked:", ingredientId);
+    return updatedSupplier;
   }
 
-  // Unlink ingredient from supplier
+  // Unlink ingredient from supplier by removing from ingredients array
   static async unlinkIngredient(supplierId, ingredientId) {
     try {
       console.log("Unlinking - Supplier ID:", supplierId, "Ingredient ID:", ingredientId);
-      if (!mongoose.Types.ObjectId.isValid(supplierId) || !mongoose.Types.ObjectId.isValid(ingredientId)) {
+      if (
+        !mongoose.Types.ObjectId.isValid(supplierId) ||
+        !mongoose.Types.ObjectId.isValid(ingredientId)
+      ) {
         throw new ValidationError("Invalid supplier or ingredient ID format");
       }
 
@@ -198,14 +197,17 @@ class SupplierService {
         throw new NotFoundError("Supplier not found");
       }
 
-      const supplierIngredient = await SupplierIngredient.findOneAndDelete({
-        supplierId,
-        ingredientId,
-      });
+      const ingredientIndex = supplier.ingredients.findIndex(
+        (ing) => ing.ingredientId.toString() === ingredientId
+      );
 
-      if (!supplierIngredient) {
+      if (ingredientIndex === -1) {
         throw new NotFoundError("Ingredient not linked to this supplier");
       }
+
+      // Remove the ingredient from the array
+      supplier.ingredients.splice(ingredientIndex, 1);
+      await supplier.save();
 
       console.log("Unlinked successfully");
       return true;
@@ -221,20 +223,17 @@ class SupplierService {
       throw new ValidationError("Invalid supplier ID format");
     }
 
-    const supplier = await Supplier.findById(supplierId);
+    const supplier = await Supplier.findById(supplierId).populate(
+      "ingredients.ingredientId",
+      "libelle type unit"
+    );
     if (!supplier) throw new NotFoundError("Supplier not found");
 
-    const ingredients = await SupplierIngredient.find({ supplierId })
-      .populate({
-        path: "ingredientId",
-        select: "libelle type unit",
-      })
-      .lean();
-    console.log("SupplierService.getSupplierIngredients - Count:", ingredients.length);
-    return ingredients;
+    console.log("SupplierService.getSupplierIngredients - Count:", supplier.ingredients.length);
+    return supplier.ingredients;
   }
 
-  // Bulk update supplier-ingredient relationships
+  // Bulk update supplier-ingredient relationships in ingredients array
   static async bulkUpdateSupplierIngredients(supplierId, ingredients) {
     if (!mongoose.Types.ObjectId.isValid(supplierId)) {
       throw new ValidationError("Invalid supplier ID format");
@@ -243,41 +242,42 @@ class SupplierService {
     const supplier = await Supplier.findById(supplierId);
     if (!supplier) throw new NotFoundError("Supplier not found");
 
-    const operations = ingredients.map((ingredient) => {
+    for (const ingredient of ingredients) {
       if (!mongoose.Types.ObjectId.isValid(ingredient.ingredientId)) {
         throw new ValidationError(
           `Invalid ingredient ID: ${ingredient.ingredientId}`
         );
       }
 
-      return {
-        updateOne: {
-          filter: {
-            supplierId: supplierId,
-            ingredientId: ingredient.ingredientId,
-          },
-          update: {
-            $set: {
-              pricePerUnit: ingredient.pricePerUnit,
-              leadTimeDays: ingredient.leadTimeDays,
-            },
-          },
-          upsert: true,
-        },
-      };
-    });
+      const existingIngredient = supplier.ingredients.find(
+        (ing) => ing.ingredientId.toString() === ingredient.ingredientId
+      );
 
-    const result = await SupplierIngredient.bulkWrite(operations);
-    console.log("SupplierService.bulkUpdateSupplierIngredients - Result:", result);
+      if (existingIngredient) {
+        // Update existing ingredient
+        existingIngredient.pricePerUnit = ingredient.pricePerUnit;
+        existingIngredient.leadTimeDays = ingredient.leadTimeDays;
+      } else {
+        // Add new ingredient
+        supplier.ingredients.push({
+          ingredientId: ingredient.ingredientId,
+          pricePerUnit: ingredient.pricePerUnit,
+          leadTimeDays: ingredient.leadTimeDays,
+        });
+      }
+    }
+
+    const updatedSupplier = await supplier.save();
+    console.log("SupplierService.bulkUpdateSupplierIngredients - Updated:", supplierId);
     return {
-      matchedCount: result.matchedCount,
-      modifiedCount: result.modifiedCount,
-      upsertedCount: result.upsertedCount,
+      matchedCount: ingredients.length,
+      modifiedCount: supplier.ingredients.length,
+      upsertedCount: ingredients.length - supplier.ingredients.length,
     };
   }
 
+  // Get top suppliers by delivery time
   static async getTopSuppliersByDeliveryTime({ startDate, endDate } = {}) {
-    // Validate dates if provided
     let dateFilter = {};
     if (startDate && endDate) {
       const start = new Date(startDate);
@@ -294,16 +294,14 @@ class SupplierService {
     }
 
     const stats = await Invoice.aggregate([
-      // Step 1: Filter invoices that have been delivered and match the date range
       {
         $match: {
-          status: "delivered", // Updated to match Invoice schema
+          status: "delivered",
           deliveredAt: { $ne: null },
           createdAt: { $ne: null },
-          ...dateFilter, // Apply date filter if provided
+          ...dateFilter,
         },
       },
-      // Step 2: Calculate delivery time for each invoice (in milliseconds)
       {
         $addFields: {
           deliveryTimeMs: {
@@ -311,7 +309,6 @@ class SupplierService {
           },
         },
       },
-      // Step 3: Group by supplier to calculate average delivery time
       {
         $group: {
           _id: "$supplier",
@@ -319,7 +316,6 @@ class SupplierService {
           invoiceCount: { $sum: 1 },
         },
       },
-      // Step 4: Lookup supplier details
       {
         $lookup: {
           from: "suppliers",
@@ -328,20 +324,17 @@ class SupplierService {
           as: "supplierDetails",
         },
       },
-      // Step 5: Unwind supplierDetails to get a single supplier object
       {
         $unwind: {
           path: "$supplierDetails",
           preserveNullAndEmptyArrays: true,
         },
       },
-      // Step 6: Filter out suppliers that don't exist
       {
         $match: {
           supplierDetails: { $ne: null },
         },
       },
-      // Step 7: Convert average delivery time to days
       {
         $addFields: {
           averageDeliveryTimeDays: {
@@ -349,13 +342,11 @@ class SupplierService {
           },
         },
       },
-      // Step 8: Sort by average delivery time (ascending)
       {
         $sort: {
           averageDeliveryTimeDays: 1,
         },
       },
-      // Step 9: Project the fields to return
       {
         $project: {
           supplierId: "$_id",
@@ -368,44 +359,41 @@ class SupplierService {
     ]);
 
     console.log("SupplierService.getTopSuppliersByDeliveryTime - Stats:", stats);
-    console.log("Number of suppliers returned:", stats.length);
     return stats;
   }
-  
+
+  // Get supplier statistics
   static async getSupplierStats() {
     try {
-      // Aggregate suppliers by status
       const statusAggregation = await Supplier.aggregate([
         {
           $group: {
-            _id: "$status", // Group by status field
-            count: { $sum: 1 }, // Count the number of suppliers for each status
+            _id: "$status",
+            count: { $sum: 1 },
           },
         },
       ]);
-  
-      // Aggregate total restaurants linked
+
       const restaurantsAggregation = await Supplier.aggregate([
         {
           $match: {
-            restaurantId: { $ne: null }, // Ensure restaurantId exists
+            restaurantId: { $ne: null },
           },
         },
         {
           $group: {
             _id: null,
-            totalRestaurantsLinked: { $addToSet: "$restaurantId" }, // Use $addToSet to get unique restaurant IDs
+            totalRestaurantsLinked: { $addToSet: "$restaurantId" },
           },
         },
         {
           $project: {
             _id: 0,
-            totalRestaurantsLinked: { $size: "$totalRestaurantsLinked" }, // Count the unique restaurant IDs
+            totalRestaurantsLinked: { $size: "$totalRestaurantsLinked" },
           },
         },
       ]);
-  
-      // Initialize default stats
+
       const stats = {
         active: 0,
         pending: 0,
@@ -413,20 +401,18 @@ class SupplierService {
         inactive: 0,
         totalRestaurantsLinked: 0,
       };
-  
-      // Populate stats from aggregation
-      statusAggregation.forEach(stat => {
+
+      statusAggregation.forEach((stat) => {
         if (stat._id === "active") stats.active = stat.count;
         else if (stat._id === "pending") stats.pending = stat.count;
         else if (stat._id === "suspended") stats.suspended = stat.count;
         else if (stat._id === "inactive") stats.inactive = stat.count;
       });
-  
-      // Add totalRestaurantsLinked
+
       if (restaurantsAggregation.length > 0) {
         stats.totalRestaurantsLinked = restaurantsAggregation[0].totalRestaurantsLinked || 0;
       }
-  
+
       console.log("SupplierService.getSupplierStats - Stats:", stats);
       return statusAggregation.concat({
         _id: "totalRestaurantsLinked",
@@ -437,6 +423,7 @@ class SupplierService {
       throw error;
     }
   }
+  
 }
 
 module.exports = SupplierService;

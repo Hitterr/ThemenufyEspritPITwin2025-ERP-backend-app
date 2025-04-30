@@ -93,11 +93,6 @@ router.patch(
   supplierController.bulkUpdateSupplierIngredients
 );
 
-// Ingredient-related route (dynamic, require ingredientId)
-router.get(
-  "/ingredient/:ingredientId",
-  validateIngredientId,
-  supplierController.getSuppliersByIngredient
-);
+
 
 module.exports = router;

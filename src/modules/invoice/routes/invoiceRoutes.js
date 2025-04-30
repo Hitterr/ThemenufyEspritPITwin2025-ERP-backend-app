@@ -5,6 +5,11 @@ const invoiceItemController = require("../controllers/invoiceItemController");
 const authMiddleware = require("@middlewares/authMiddleware");
 
 // Invoice routes
+router.get(
+  "/stats",
+  authMiddleware.verifyToken,
+  invoiceController.getInvoiceStats
+);
 router.post("/", authMiddleware.verifyToken, invoiceController.createInvoice);
 router.get("/", authMiddleware.verifyToken, invoiceController.getInvoices);
 router.get(
@@ -17,10 +22,16 @@ router.delete(
   authMiddleware.verifyToken,
   invoiceController.deleteInvoice
 );
+// Update Invoice Status && Paid Status
 router.patch(
   "/:invoiceId/status",
   authMiddleware.verifyToken,
   invoiceController.updateInvoiceStatus
+);
+router.post(
+  "/:invoiceId/paid-status",
+  authMiddleware.verifyToken,
+  invoiceController.updateInvoicePaidStatus
 );
 
 // Invoice items routes
