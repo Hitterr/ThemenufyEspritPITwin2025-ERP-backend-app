@@ -14,6 +14,14 @@ const consumptionHistorySchema = new Schema({
 		required: [true, "L'ID de l'ingrédient est requis"],
 		index: true,
 	},
+	 
+	
+	wastageQty: { 
+    type: Number,
+    required: false
+  },
+
+  
 	ordreId: {
 		type: Schema.Types.ObjectId,
 		ref: "Order",
@@ -24,6 +32,7 @@ const consumptionHistorySchema = new Schema({
 		required: [true, "La quantité utilisée est requise"],
 		min: [0, "La quantité utilisée ne peut pas être négative"],
 	},
+
 	createdAt: {
 		type: Date,
 		default: Date.now,
