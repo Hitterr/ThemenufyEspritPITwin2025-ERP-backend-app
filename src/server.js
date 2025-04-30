@@ -28,7 +28,6 @@ app.use("/api/admin", require("@modules/admin"));
 app.use("/api/ingredient", require("@modules/ingredient"));
 app.use("/api/storage", require("@modules/storage"));
 app.use("/api/waste", require("@modules/waste/routes/wasteRoutes"));
-
 app.use("/api/supplier", require("@modules/supplier/routes/supplierRoutes"));
 app.use("/api/invoice", require("@modules/invoice"));
 app.use(
@@ -43,6 +42,7 @@ app.use(
 	require("@modules/forecastedSales/routes/forecastRoutes")
 );
 // Start server
+app.use("/api/recipe", require("@modules/recipe/routes/recipeRoutes"));
 const http = require("http");
 const { initSocket } = require("./config/socket");
 // Create HTTP server
