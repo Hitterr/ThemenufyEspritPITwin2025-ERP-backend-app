@@ -38,7 +38,7 @@ app.use("/api/suppliersComparaison", require("@modules/supplierComparaison"));
 app.use("/api/categories", require("@modules/category"));
 app.use("/api/filter", require("@modules/filterCriteria"));
 app.use(
-  "/api/ingredients/forecast-auto",
+  "/api/stocks/forecast-auto",
   require("@modules/forecastedSales/routes/forecastRoutes")
 );
 app.use("/api/stock", require("@modules/stock"));

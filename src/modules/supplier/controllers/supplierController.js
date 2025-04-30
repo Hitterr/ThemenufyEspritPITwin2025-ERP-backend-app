@@ -59,7 +59,9 @@ const getAllSuppliers = async (req, res) => {
 // Get a supplier by ID with populated data
 const getSupplierById = async (req, res) => {
   try {
-    const supplier = await supplierService.getSupplierById(req.params.supplierId);
+    const supplier = await supplierService.getSupplierById(
+      req.params.supplierId
+    );
     res.status(200).json({
       success: true,
       data: supplier,
@@ -82,7 +84,12 @@ const getSupplierById = async (req, res) => {
 // Update a supplier
 const updateSupplier = async (req, res) => {
   try {
-    console.log("Updating supplier with ID:", req.params.supplierId, "Data:", req.body);
+    console.log(
+      "Updating supplier with ID:",
+      req.params.supplierId,
+      "Data:",
+      req.body
+    );
     const supplier = await supplierService.updateSupplier(
       req.params.supplierId,
       req.body
@@ -131,13 +138,13 @@ const deleteSupplier = async (req, res) => {
   }
 };
 
-// Link a supplier to an ingredient
-const linkIngredient = async (req, res) => {
+// Link a supplier to an stock
+const linkStock = async (req, res) => {
   try {
-    const { ingredientId, pricePerUnit, leadTimeDays } = req.body;
-    const result = await supplierService.linkIngredient(
+    const { stockId, pricePerUnit, leadTimeDays } = req.body;
+    const result = await supplierService.linkStock(
       req.params.supplierId,
-      ingredientId,
+      stockId,
       pricePerUnit,
       leadTimeDays
     );
@@ -146,7 +153,7 @@ const linkIngredient = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error("Error in linkIngredient:", error.message);
+    console.error("Error in linkStock:", error.message);
     const statusCode =
       error instanceof NotFoundError
         ? 404
@@ -162,18 +169,18 @@ const linkIngredient = async (req, res) => {
   }
 };
 
-// Get ingredients linked to a supplier
-const getSupplierIngredients = async (req, res) => {
+// Get stocks linked to a supplier
+const getSupplierStocks = async (req, res) => {
   try {
-    const supplierIngredients = await supplierService.getSupplierIngredients(
+    const supplierStocks = await supplierService.getSupplierStocks(
       req.params.supplierId
     );
     res.status(200).json({
       success: true,
-      data: supplierIngredients,
+      data: supplierStocks,
     });
   } catch (error) {
-    console.error("Error in getSupplierIngredients:", error.message);
+    console.error("Error in getSupplierStocks:", error.message);
     const statusCode =
       error instanceof NotFoundError
         ? 404
@@ -187,17 +194,17 @@ const getSupplierIngredients = async (req, res) => {
   }
 };
 
-// Unlink an ingredient from a supplier
-const unlinkIngredient = async (req, res) => {
+// Unlink an stock from a supplier
+const unlinkStock = async (req, res) => {
   try {
-    const { supplierId, ingredientId } = req.params;
-    const result = await supplierService.unlinkIngredient(supplierId, ingredientId);
+    const { supplierId, stockId } = req.params;
+    const result = await supplierService.unlinkStock(supplierId, stockId);
     res.status(200).json({
       success: true,
       data: result,
     });
   } catch (error) {
-    console.error("Error in unlinkIngredient:", error.message);
+    console.error("Error in unlinkStock:", error.message);
     const statusCode =
       error instanceof NotFoundError
         ? 404
@@ -211,21 +218,21 @@ const unlinkIngredient = async (req, res) => {
   }
 };
 
-// Bulk update supplier ingredients
-const bulkUpdateSupplierIngredients = async (req, res) => {
+// Bulk update supplier stocks
+const bulkUpdateSupplierStocks = async (req, res) => {
   try {
     const { supplierId } = req.params;
-    const { ingredients } = req.body;
-    const result = await supplierService.bulkUpdateSupplierIngredients(
+    const { stocks } = req.body;
+    const result = await supplierService.bulkUpdateSupplierStocks(
       supplierId,
-      ingredients
+      stocks
     );
     res.status(200).json({
       success: true,
       data: result,
     });
   } catch (error) {
-    console.error("Error in bulkUpdateSupplierIngredients:", error.message);
+    console.error("Error in bulkUpdateSupplierStocks:", error.message);
     const statusCode =
       error instanceof NotFoundError
         ? 404
@@ -293,10 +300,10 @@ module.exports = {
   getSupplierById,
   updateSupplier,
   deleteSupplier,
-  linkIngredient,
-  getSupplierIngredients,
-  unlinkIngredient,
-  bulkUpdateSupplierIngredients,
+  linkStock,
+  getSupplierStocks,
+  unlinkStock,
+  bulkUpdateSupplierStocks,
   getTopSuppliersByDeliveryTime,
   getSupplierStats,
 };

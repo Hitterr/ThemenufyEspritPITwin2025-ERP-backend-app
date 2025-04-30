@@ -4,8 +4,8 @@ const supplierController = require("../controllers/supplierController");
 const {
   validateSupplier,
   validateSupplierId,
-  validateSupplierIngredient,
-  validateIngredientId,
+  validateSupplierStock,
+  validateStockId,
 } = require("../validators/supplierValidators");
 const { body, validationResult } = require("express-validator");
 
@@ -25,7 +25,11 @@ router.post("/", validateSupplier, supplierController.createSupplier);
 router.get("/", supplierController.getAllSuppliers);
 
 // Supplier CRUD routes (dynamic, require supplierId)
-router.get("/:supplierId", validateSupplierId, supplierController.getSupplierById);
+router.get(
+  "/:supplierId",
+  validateSupplierId,
+  supplierController.getSupplierById
+);
 router.put(
   "/:supplierId",
   validateSupplierId,
@@ -38,44 +42,42 @@ router.delete(
   supplierController.deleteSupplier
 );
 
-// Supplier-ingredient relationship routes (nested under supplierId)
+// Supplier-stock relationship routes (nested under supplierId)
 router.post(
-  "/:supplierId/link-ingredient",
+  "/:supplierId/link-stock",
   validateSupplierId,
-  validateSupplierIngredient,
-  supplierController.linkIngredient
+  validateSupplierStock,
+  supplierController.linkStock
 );
 router.post(
-  "/:supplierId/ingredients",
+  "/:supplierId/stocks",
   validateSupplierId,
-  validateSupplierIngredient,
-  supplierController.linkIngredient
+  validateSupplierStock,
+  supplierController.linkStock
 );
 router.get(
-  "/:supplierId/ingredients",
+  "/:supplierId/stocks",
   validateSupplierId,
-  supplierController.getSupplierIngredients
+  supplierController.getSupplierStocks
 );
 router.delete(
-  "/:supplierId/ingredients/:ingredientId",
+  "/:supplierId/stocks/:stockId",
   validateSupplierId,
-  validateIngredientId,
-  supplierController.unlinkIngredient
+  validateStockId,
+  supplierController.unlinkStock
 );
 router.patch(
-  "/:supplierId/ingredients/bulk",
+  "/:supplierId/stocks/bulk",
   validateSupplierId,
   [
-    body("ingredients")
+    body("stocks")
       .isArray({ min: 1 })
-      .withMessage("Ingredients must be a non-empty array"),
-    body("ingredients.*.ingredientId")
-      .isMongoId()
-      .withMessage("Invalid ingredient ID"),
-    body("ingredients.*.pricePerUnit")
+      .withMessage("Stocks must be a non-empty array"),
+    body("stocks.*.stockId").isMongoId().withMessage("Invalid stock ID"),
+    body("stocks.*.pricePerUnit")
       .isFloat({ min: 0 })
       .withMessage("Price per unit must be a positive number"),
-    body("ingredients.*.leadTimeDays")
+    body("stocks.*.leadTimeDays")
       .isInt({ min: 1 })
       .withMessage("Lead time must be a positive integer"),
     (req, res, next) => {
@@ -90,9 +92,7 @@ router.patch(
       next();
     },
   ],
-  supplierController.bulkUpdateSupplierIngredients
+  supplierController.bulkUpdateSupplierStocks
 );
-
-
 
 module.exports = router;

@@ -1,16 +1,16 @@
-const Ingredient = require("../../../models/ingredient");
+const Stock = require("../../../models/stock");
 const Supplier = require("../../../models/supplier");
 
 class SupplierController {
   async compareSuppliers(req, res) {
     try {
-      const { ingredientId, sortBy = "price", order = "asc" } = req.query;
+      const { stockId, sortBy = "price", order = "asc" } = req.query;
 
-      // Validate ingredientId
-      if (!ingredientId) {
+      // Validate stockId
+      if (!stockId) {
         return res.status(400).json({
           success: false,
-          message: "ingredientId is required",
+          message: "stockId is required",
         });
       }
 
@@ -23,23 +23,23 @@ class SupplierController {
         });
       }
 
-      const suppliers = await Supplier.find().populate("ingredients.ingredientId");
+      const suppliers = await Supplier.find().populate("stocks.stockId");
 
       let comparisonData = [];
       suppliers.forEach((supplier) => {
-        // Find the specific ingredient for this supplier
-        const ingredient = supplier.ingredients.find(
-          (ing) => ing.ingredientId?._id.toString() === ingredientId
+        // Find the specific stock for this supplier
+        const stock = supplier.stocks.find(
+          (ing) => ing.stockId?._id.toString() === stockId
         );
 
-        if (ingredient) {
+        if (stock) {
           comparisonData.push({
             supplierId: supplier._id,
             supplierName: supplier.name,
-            ingredientId: ingredient.ingredientId._id,
-            ingredientName: ingredient.ingredientId.libelle,
-            price: ingredient.pricePerUnit || 0, // Correct field name
-            deliveryTime: ingredient.leadTimeDays || 0, // Correct field name
+            stockId: stock.stockId._id,
+            stockName: stock.stockId.libelle,
+            price: stock.pricePerUnit || 0, // Correct field name
+            deliveryTime: stock.leadTimeDays || 0, // Correct field name
           });
         }
       });

@@ -124,13 +124,13 @@ const validateSupplierId = [
   },
 ];
 
-const validateSupplierIngredient = [
+const validateSupplierStock = [
   param("supplierId").isMongoId().withMessage("Invalid supplier ID"),
-  body("ingredientId")
+  body("stockId")
     .notEmpty()
-    .withMessage("Ingredient ID is required")
+    .withMessage("Stock ID is required")
     .isMongoId()
-    .withMessage("Invalid ingredient ID"),
+    .withMessage("Invalid stock ID"),
   body("pricePerUnit")
     .notEmpty()
     .withMessage("Price per unit is required")
@@ -154,8 +154,8 @@ const validateSupplierIngredient = [
   },
 ];
 
-const validateIngredientId = [
-  param("ingredientId").isMongoId().withMessage("Invalid ingredient ID"),
+const validateStockId = [
+  param("stockId").isMongoId().withMessage("Invalid stock ID"),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -172,6 +172,6 @@ const validateIngredientId = [
 module.exports = {
   validateSupplier,
   validateSupplierId,
-  validateSupplierIngredient,
-  validateIngredientId,
+  validateSupplierStock,
+  validateStockId,
 };

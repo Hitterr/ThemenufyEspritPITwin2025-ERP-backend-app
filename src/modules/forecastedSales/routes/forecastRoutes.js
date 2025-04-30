@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const { getPredictedIngredients } = require("../controllers/forecastController");
+const { getPredictedStocks } = require("../controllers/forecastController");
 
-router.get("/auto", getPredictedIngredients);
+router.get("/auto", getPredictedStocks);
 
 module.exports = router;

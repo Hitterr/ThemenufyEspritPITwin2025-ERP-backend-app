@@ -1,6 +1,6 @@
 const yup = require("yup");
 const invoiceItemSchema = yup.object().shape({
-  ingredient: yup.string().optional(),
+  stock: yup.string().optional(),
   quantity: yup
     .number()
     .positive("Quantity must be positive")

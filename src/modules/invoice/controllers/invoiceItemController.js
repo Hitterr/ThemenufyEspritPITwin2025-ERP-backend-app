@@ -5,24 +5,18 @@ const addInvoiceItem = async (req, res) => {
     await invoiceItemSchema.validate(req.body, { abortEarly: false });
 
     const { invoiceId } = req.params;
-    const {
-      ingredient,
-      quantity,
-      description,
-      price,
-      supplierId,
-      restaurantId,
-    } = req.body;
+    const { stock, quantity, description, price, supplierId, restaurantId } =
+      req.body;
 
-    if (!ingredient) {
+    if (!stock) {
       return res.status(400).json({
         success: false,
-        message: "Ingredient ID is required",
+        message: "Stock ID is required",
       });
     }
 
     const itemData = {
-      ingredient: ingredient || undefined,
+      stock: stock || undefined,
       quantity,
       description,
       price,

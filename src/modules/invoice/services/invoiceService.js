@@ -32,7 +32,7 @@ class InvoiceService {
       const priceHistoryData = {
         restaurantId: restaurant,
         supplierId: supplier,
-        ingredientId: item.ingredient,
+        stockId: item.stock,
         invoiceId: invoice._id,
         price: item.price,
       };
@@ -64,7 +64,7 @@ class InvoiceService {
       throw new Error("Invoice not found");
     }
     const items = await InvoiceItem.find({ invoice: invoiceId }).populate(
-      "ingredient",
+      "stock",
       "libelle price"
     );
     return { ...invoice._doc, items };
