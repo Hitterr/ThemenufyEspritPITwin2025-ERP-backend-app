@@ -1,49 +1,54 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const stockSchema = new Schema(
-  {
-    libelle: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    quantity: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-    type: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-      required: true,
-    },
-    price: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-    disponibility: {
-      type: Boolean,
-      default: true,
-    },
-    maxQty: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-    minQty: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
-    unit: {
-      type: String,
-      enum: ["g", "kg", "mg", "l", "ml", "cl", "pcs"],
-      required: true,
-      trim: true,
-    },
-  },
-  { timestamps: true }
+	{
+		libelle: {
+			type: String,
+			required: true,
+			trim: true,
+		},
+		quantity: {
+			type: Number,
+			required: true,
+			min: 0,
+		},
+		type: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Category",
+			required: true,
+		},
+		price: {
+			type: Number,
+			required: true,
+			min: 0,
+		},
+		disponibility: {
+			type: Boolean,
+			default: true,
+		},
+		maxQty: {
+			type: Number,
+			required: true,
+			min: 0,
+		},
+		minQty: {
+			type: Number,
+			required: true,
+			min: 0,
+		},
+		unit: {
+			type: String,
+			enum: ["g", "kg", "mg", "l", "ml", "cl", "pcs"],
+			required: true,
+			trim: true,
+		},
+		restaurant: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Restaurant",
+			required: false,
+		},
+	},
+	{ timestamps: true }
 );
 stockSchema.index({ libelle: 1 });
 const Stock = mongoose.models.Stock || mongoose.model("Stock", stockSchema);

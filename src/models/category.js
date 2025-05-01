@@ -11,6 +11,11 @@ const CategorySchema = new mongoose.Schema(
 			type: String,
 			default: "",
 		},
+		restaurant: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Restaurant",
+			required: false,
+		},
 		subCategories: [
 			{
 				type: mongoose.Schema.Types.ObjectId,
