@@ -33,7 +33,6 @@ exports.handleChatbotRequest = async (input) => {
         knowledge += `- ${name}\n`;
       });
     } else {
-      // 🔁 Réponse enrichie classique avec prix, fournisseur, délai
       knowledge = 'Voici la liste des ingrédients disponibles avec leurs fournisseurs :\n';
 
       for (const s of suppliers) {

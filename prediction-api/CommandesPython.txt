@@ -1,0 +1,8 @@
+python app.py
+
+venv\Scripts\activate
+python -m venv venv
+*****Toujours dans venv ****
+***pip install Flask
+*** pip install pymongo
+*** pip install prophet
