@@ -5,39 +5,37 @@ from bson import ObjectId
 import pandas as pd
 from flask_cors import CORS  
 
-
 app = Flask(__name__)
 CORS(app)  # ← Autorise toutes les origines (CORS)
-
 
 # Connexion MongoDB
 client = MongoClient("mongodb://localhost:27017/")
 db = client["the-menufy"]
 consumption_collection = db["consumptionhistories"]
-ingredient_collection = db["ingredients"]
+stock_collection = db["stocks"]
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
         data = request.get_json()
-        ingredient_id_str = data.get('ingredientId')
+        stock_id_str = data.get('stockId')
         days = int(data.get('days', 7))
 
-        if not ingredient_id_str:
-            return jsonify({"success": False, "error": "ingredientId is required."}), 400
+        if not stock_id_str:
+            return jsonify({"success": False, "error": "stockId is required."}), 400
 
         try:
-            ingredient_id = ObjectId(ingredient_id_str)
+            stock_id = ObjectId(stock_id_str)
         except:
-            return jsonify({"success": False, "error": "Invalid ingredientId format."}), 400
+            return jsonify({"success": False, "error": "Invalid stockId format."}), 400
 
         # 1. Récupération historique consommation
         consumption_data = list(consumption_collection.find({
-            "ingredientId": ingredient_id
+            "stockId": stock_id
         }))
 
         if not consumption_data:
-            return jsonify({"success": False, "error": "No consumption history found for this ingredient."}), 404
+            return jsonify({"success": False, "error": "No consumption history found for this stock."}), 404
 
         # 2. Transformation en DataFrame
         df = pd.DataFrame([{
@@ -57,11 +55,11 @@ def predict():
         prediction_values = forecast.tail(days)[['ds', 'yhat']].to_dict(orient='records')
 
         # 4. Récupération stock actuel
-        ingredient = ingredient_collection.find_one({ "_id": ingredient_id })
-        if not ingredient:
-            return jsonify({"success": False, "error": "Ingredient not found."}), 404
+        stock = stock_collection.find_one({ "_id": stock_id })
+        if not stock:
+            return jsonify({"success": False, "error": "Stock not found."}), 404
 
-        current_stock = ingredient.get("quantity", 0)
+        current_stock = stock.get("quantity", 0)
 
         # 5. Total prédit et manque
         total_predicted_qty = sum(p['yhat'] for p in prediction_values)
@@ -70,7 +68,7 @@ def predict():
         # 6. Réponse
         return jsonify({
             "success": True,
-            "ingredientId": ingredient_id_str,
+            "stockId": stock_id_str,
             "days": days,
             "predictions": prediction_values,
             "totalForecastedQty": round(total_predicted_qty, 2),

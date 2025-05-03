@@ -1,24 +1,24 @@
 const { invoice1Id, invoice2Id } = require("./invoiceSeeds");
-const { ingredient1Id, ingredient2Id, ingredient3Id } = require("./ingredientSeeds");
+const { stock1Id, stock2Id,stock3Id } = require("./stockSeeds");
 
 const invoiceItems = [
   {
     invoice: invoice1Id,
-    ingredient: ingredient1Id,
+    stock: stock1Id,
     quantity: 10,
     price: 11.99,
     created_at: new Date("2023-01-15")
   },
   {
     invoice: invoice1Id,
-    ingredient: ingredient2Id,
+    stock: stock2Id,
     quantity: 15,
     price: 8.99,
     created_at: new Date("2023-01-15")
   },
   {
     invoice: invoice2Id,
-    ingredient: ingredient3Id,
+    stock: stock3Id,
     quantity: 20,
     price: 3.49,
     created_at: new Date("2023-01-16")

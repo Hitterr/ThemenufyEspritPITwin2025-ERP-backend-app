@@ -1,23 +1,22 @@
 const historyService = require("../services/historyService");
 exports.createConsumption = async (req, res) => {
 	try {
-		const { restaurantId, ingredientId, ordreId } = req.body; // Utiliser req.body pour récupérer les données
-		const { qty } = req.body;
+		const { restaurantId, stockId, ordreId } = req.body; // Utiliser req.body pour récupérer les données
+		const { qty, wastageQty = 0 } = req.body;
 		// Vérification des entrées
-		if (!restaurantId || !ingredientId || !ordreId || !qty) {
-			return res
-				.status(400)
-				.json({
-					message:
-						"Tous les paramètres (restaurantId, ingredientId,ordreId, qty) sont requis.",
-				});
+		if (!restaurantId || !stockId || !ordreId || !qty) {
+			return res.status(400).json({
+				message:
+					"Tous les paramètres (restaurantId, stockId,ordreId, qty,wastageQty) sont requis.",
+			});
 		}
 		// Appel à la fonction de création
 		const result = await historyService.createConsumption(
-			ingredientId,
+			stockId,
 			restaurantId,
 			ordreId,
-			qty
+			qty,
+			wastageQty
 		);
 		res.status(201).json(result);
 	} catch (err) {
@@ -29,20 +28,13 @@ exports.createConsumption = async (req, res) => {
 };
 exports.getConsumption = async (req, res) => {
 	try {
-		const { restaurantId, ingredientId, ordreId } = req.query;
-		// Vérification des paramètres de la requête
-		if (!restaurantId && !ingredientId && !ordreId) {
-			return res
-				.status(400)
-				.json({
-					message:
-						"Au moins un des paramètres (restaurantId ou ingredientId ou ordreId) doit être fourni.",
-				});
-		}
+		const { stockId = "", ordreId = "" } = req.query;
+		restaurantId = req.user.details.restaurant._id;
+		if (!restaurantId) throw new Error("restaurantId is required");
 		// Appel à la fonction de récupération des consommations
 		const results = await historyService.getConsumptions(
 			restaurantId,
-			ingredientId,
+			stockId,
 			ordreId
 		);
 		res.status(200).json(results);

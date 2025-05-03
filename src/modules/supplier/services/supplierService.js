@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Supplier = require("../../../models/supplier");
-const Ingredient = require("../../../models/ingredient");
+const Stock = require("../../../models/stock");
 const Invoice = require("../../../models/invoice");
 const {
   NotFoundError,
@@ -60,7 +60,10 @@ class SupplierService {
       }
 
       const result = await Supplier.paginate(query, options);
-      console.log("SupplierService.getAllSuppliers - Result:", result.pagination);
+      console.log(
+        "SupplierService.getAllSuppliers - Result:",
+        result.pagination
+      );
       return {
         suppliers: result.docs,
         pagination: {
@@ -86,7 +89,7 @@ class SupplierService {
 
     const supplier = await Supplier.findById(id)
       .populate("restaurantId")
-      .populate("ingredients.ingredientId");
+      .populate("stocks.stockId");
 
     if (!supplier) {
       throw new NotFoundError("Supplier not found");
@@ -115,7 +118,7 @@ class SupplierService {
     const supplier = await Supplier.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
-    }).populate("ingredients.ingredientId");
+    }).populate("stocks.stockId");
 
     if (!supplier) {
       throw new NotFoundError("Supplier not found");
@@ -143,53 +146,53 @@ class SupplierService {
     };
   }
 
-  // Link ingredient to supplier by adding to ingredients array
-  static async linkIngredient(supplierId, ingredientId, pricePerUnit, leadTimeDays) {
+  // Link stock to supplier by adding to stocks array
+  static async linkStock(supplierId, stockId, pricePerUnit, leadTimeDays) {
     if (
       !mongoose.Types.ObjectId.isValid(supplierId) ||
-      !mongoose.Types.ObjectId.isValid(ingredientId)
+      !mongoose.Types.ObjectId.isValid(stockId)
     ) {
       throw new ValidationError("Invalid ID format");
     }
 
-    const [supplier, ingredient] = await Promise.all([
+    const [supplier, stock] = await Promise.all([
       Supplier.findById(supplierId),
-      Ingredient.findById(ingredientId),
+      Stock.findById(stockId),
     ]);
 
     if (!supplier) throw new NotFoundError("Supplier not found");
-    if (!ingredient) throw new NotFoundError("Ingredient not found");
+    if (!stock) throw new NotFoundError("Stock not found");
 
-    // Check if ingredient is already linked
-    const existingLink = supplier.ingredients.find(
-      (ing) => ing.ingredientId.toString() === ingredientId
+    // Check if stock is already linked
+    const existingLink = supplier.stocks.find(
+      (ing) => ing.stockId.toString() === stockId
     );
 
     if (existingLink) {
-      throw new ConflictError("Supplier is already linked to this ingredient");
+      throw new ConflictError("Supplier is already linked to this stock");
     }
 
-    // Add new ingredient to the supplier's ingredients array
-    supplier.ingredients.push({
-      ingredientId,
+    // Add new stock to the supplier's stocks array
+    supplier.stocks.push({
+      stockId,
       pricePerUnit,
       leadTimeDays,
     });
 
     const updatedSupplier = await supplier.save();
-    console.log("SupplierService.linkIngredient - Linked:", ingredientId);
+    console.log("SupplierService.linkStock - Linked:", stockId);
     return updatedSupplier;
   }
 
-  // Unlink ingredient from supplier by removing from ingredients array
-  static async unlinkIngredient(supplierId, ingredientId) {
+  // Unlink stock from supplier by removing from stocks array
+  static async unlinkStock(supplierId, stockId) {
     try {
-      console.log("Unlinking - Supplier ID:", supplierId, "Ingredient ID:", ingredientId);
+      console.log("Unlinking - Supplier ID:", supplierId, "Stock ID:", stockId);
       if (
         !mongoose.Types.ObjectId.isValid(supplierId) ||
-        !mongoose.Types.ObjectId.isValid(ingredientId)
+        !mongoose.Types.ObjectId.isValid(stockId)
       ) {
-        throw new ValidationError("Invalid supplier or ingredient ID format");
+        throw new ValidationError("Invalid supplier or stock ID format");
       }
 
       const supplier = await Supplier.findById(supplierId);
@@ -197,44 +200,51 @@ class SupplierService {
         throw new NotFoundError("Supplier not found");
       }
 
-      const ingredientIndex = supplier.ingredients.findIndex(
-        (ing) => ing.ingredientId.toString() === ingredientId
+      const stockIndex = supplier.stocks.findIndex(
+        (ing) => ing.stockId.toString() === stockId
       );
 
-      if (ingredientIndex === -1) {
-        throw new NotFoundError("Ingredient not linked to this supplier");
+      if (stockIndex === -1) {
+        throw new NotFoundError("Stock not linked to this supplier");
       }
 
-      // Remove the ingredient from the array
-      supplier.ingredients.splice(ingredientIndex, 1);
+      // Remove the stock from the array
+      supplier.stocks.splice(stockIndex, 1);
       await supplier.save();
 
       console.log("Unlinked successfully");
       return true;
     } catch (error) {
-      console.error("Error in unlinkIngredient (Service):", error.message, error.stack);
+      console.error(
+        "Error in unlinkStock (Service):",
+        error.message,
+        error.stack
+      );
       throw error;
     }
   }
 
-  // Get all ingredients for a supplier with pricing info
-  static async getSupplierIngredients(supplierId) {
+  // Get all stocks for a supplier with pricing info
+  static async getSupplierStocks(supplierId) {
     if (!mongoose.Types.ObjectId.isValid(supplierId)) {
       throw new ValidationError("Invalid supplier ID format");
     }
 
     const supplier = await Supplier.findById(supplierId).populate(
-      "ingredients.ingredientId",
+      "stocks.stockId",
       "libelle type unit"
     );
     if (!supplier) throw new NotFoundError("Supplier not found");
 
-    console.log("SupplierService.getSupplierIngredients - Count:", supplier.ingredients.length);
-    return supplier.ingredients;
+    console.log(
+      "SupplierService.getSupplierStocks - Count:",
+      supplier.stocks.length
+    );
+    return supplier.stocks;
   }
 
-  // Bulk update supplier-ingredient relationships in ingredients array
-  static async bulkUpdateSupplierIngredients(supplierId, ingredients) {
+  // Bulk update supplier-stock relationships in stocks array
+  static async bulkUpdateSupplierStocks(supplierId, stocks) {
     if (!mongoose.Types.ObjectId.isValid(supplierId)) {
       throw new ValidationError("Invalid supplier ID format");
     }
@@ -242,37 +252,38 @@ class SupplierService {
     const supplier = await Supplier.findById(supplierId);
     if (!supplier) throw new NotFoundError("Supplier not found");
 
-    for (const ingredient of ingredients) {
-      if (!mongoose.Types.ObjectId.isValid(ingredient.ingredientId)) {
-        throw new ValidationError(
-          `Invalid ingredient ID: ${ingredient.ingredientId}`
-        );
+    for (const stock of stocks) {
+      if (!mongoose.Types.ObjectId.isValid(stock.stockId)) {
+        throw new ValidationError(`Invalid stock ID: ${stock.stockId}`);
       }
 
-      const existingIngredient = supplier.ingredients.find(
-        (ing) => ing.ingredientId.toString() === ingredient.ingredientId
+      const existingStock = supplier.stocks.find(
+        (ing) => ing.stockId.toString() === stock.stockId
       );
 
-      if (existingIngredient) {
-        // Update existing ingredient
-        existingIngredient.pricePerUnit = ingredient.pricePerUnit;
-        existingIngredient.leadTimeDays = ingredient.leadTimeDays;
+      if (existingStock) {
+        // Update existing stock
+        existingStock.pricePerUnit = stock.pricePerUnit;
+        existingStock.leadTimeDays = stock.leadTimeDays;
       } else {
-        // Add new ingredient
-        supplier.ingredients.push({
-          ingredientId: ingredient.ingredientId,
-          pricePerUnit: ingredient.pricePerUnit,
-          leadTimeDays: ingredient.leadTimeDays,
+        // Add new stock
+        supplier.stocks.push({
+          stockId: stock.stockId,
+          pricePerUnit: stock.pricePerUnit,
+          leadTimeDays: stock.leadTimeDays,
         });
       }
     }
 
     const updatedSupplier = await supplier.save();
-    console.log("SupplierService.bulkUpdateSupplierIngredients - Updated:", supplierId);
+    console.log(
+      "SupplierService.bulkUpdateSupplierStocks - Updated:",
+      supplierId
+    );
     return {
-      matchedCount: ingredients.length,
-      modifiedCount: supplier.ingredients.length,
-      upsertedCount: ingredients.length - supplier.ingredients.length,
+      matchedCount: stocks.length,
+      modifiedCount: supplier.stocks.length,
+      upsertedCount: stocks.length - supplier.stocks.length,
     };
   }
 
@@ -283,7 +294,9 @@ class SupplierService {
       const start = new Date(startDate);
       const end = new Date(endDate);
       if (isNaN(start) || isNaN(end)) {
-        throw new ValidationError("Invalid date format for startDate or endDate");
+        throw new ValidationError(
+          "Invalid date format for startDate or endDate"
+        );
       }
       if (start > end) {
         throw new ValidationError("startDate must be before endDate");
@@ -358,7 +371,10 @@ class SupplierService {
       },
     ]);
 
-    console.log("SupplierService.getTopSuppliersByDeliveryTime - Stats:", stats);
+    console.log(
+      "SupplierService.getTopSuppliersByDeliveryTime - Stats:",
+      stats
+    );
     return stats;
   }
 
@@ -410,7 +426,8 @@ class SupplierService {
       });
 
       if (restaurantsAggregation.length > 0) {
-        stats.totalRestaurantsLinked = restaurantsAggregation[0].totalRestaurantsLinked || 0;
+        stats.totalRestaurantsLinked =
+          restaurantsAggregation[0].totalRestaurantsLinked || 0;
       }
 
       console.log("SupplierService.getSupplierStats - Stats:", stats);
@@ -419,7 +436,10 @@ class SupplierService {
         count: stats.totalRestaurantsLinked,
       });
     } catch (error) {
-      console.error("Error in SupplierService.getSupplierStats:", error.message);
+      console.error(
+        "Error in SupplierService.getSupplierStats:",
+        error.message
+      );
       throw error;
     }
   }

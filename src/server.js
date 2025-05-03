@@ -6,6 +6,7 @@ const listEndpoints = require("express-list-endpoints");
 const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 5000;
+const { verifyToken } = require("./middlewares/authMiddleware");
 // Connect to MongoDB
 connectDB();
 // Middleware
@@ -26,8 +27,8 @@ app.use("/api/superadmins", require("@modules/superAdmin"));
 app.use("/api/restaurant", require("@modules/restaurant"));
 app.use("/api/admin", require("@modules/admin"));
 app.use("/api/ingredient", require("@modules/ingredient"));
-app.use("/api/invoice", require("@modules/invoice"));
 app.use("/api/storage", require("@modules/storage"));
+app.use("/api/waste", require("@modules/waste/routes/wasteRoutes"));
 app.use("/api/supplier", require("@modules/supplier/routes/supplierRoutes"));
 app.use("/api/invoice", require("@modules/invoice"));
 app.use(
@@ -36,11 +37,17 @@ app.use(
 );
 app.use("/api/suppliersComparaison", require("@modules/supplierComparaison"));
 app.use("/api/categories", require("@modules/category"));
-app.use('/api/ingredients/forecast-auto', require('@modules/forecastedSales/routes/forecastRoutes'));
-
+app.use("/api/filter", require("@modules/filterCriteria"));
+app.use(
+	"/api/stocks/forecast-auto",
+	require("@modules/forecastedSales/routes/forecastRoutes")
+);
+app.use("/api/stock", require("@modules/stock"));
 // Start server
+app.use("/api/recipe", require("@modules/recipe/routes/recipeRoutes"));
 const http = require("http");
 const { initSocket } = require("./config/socket");
+const { verify } = require("crypto");
 // Create HTTP server
 const server = http.createServer(app);
 // Initialize Socket.IO
