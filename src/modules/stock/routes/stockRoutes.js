@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const stockController = require("../controllers/stockController");
 const { getStockAnalysis } = require("../controllers/stock.stats.controller");
+const stockQRCodeController = require("../controllers/stock.qrcode.controller");
 const { verifyToken } = require("../../../middlewares/authMiddleware");
 // Stock management routes
 router.use(verifyToken);
@@ -14,4 +15,11 @@ router.delete("/:id", stockController.deleteStock);
 // Quantity management routes
 router.patch("/:id/increase", stockController.increaseQuantity);
 router.patch("/:id/decrease", stockController.decreaseQuantity);
+// QR Code routes
+router.get("/:stockId/qrcode", stockQRCodeController.generateQRCode);
+router.get("/:stockId/qrcode/scan", stockQRCodeController.getStockByQRCode);
+router.post(
+  "/invoices/:invoiceId/stock/:stockId",
+  stockQRCodeController.addStockToInvoice
+);
 module.exports = router;
