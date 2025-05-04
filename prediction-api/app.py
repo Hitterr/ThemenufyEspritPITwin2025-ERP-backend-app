@@ -6,7 +6,7 @@ import pandas as pd
 from flask_cors import CORS  
 
 app = Flask(__name__)
-CORS(app)  # ← Autorise toutes les origines (CORS)
+CORS(app)
 
 # Connexion MongoDB
 client = MongoClient("mongodb://localhost:27017/")
@@ -24,48 +24,59 @@ def predict():
         if not stock_id_str:
             return jsonify({"success": False, "error": "stockId is required."}), 400
 
-        try:
-            stock_id = ObjectId(stock_id_str)
-        except:
-            return jsonify({"success": False, "error": "Invalid stockId format."}), 400
+        stock_id = ObjectId(stock_id_str)
 
-        # 1. Récupération historique consommation
-        consumption_data = list(consumption_collection.find({
-            "stockId": stock_id
-        }))
-
+        # 1. Récupération des données
+        consumption_data = list(consumption_collection.find({"stockId": stock_id}))
         if not consumption_data:
-            return jsonify({"success": False, "error": "No consumption history found for this stock."}), 404
+            return jsonify({"success": False, "error": "No consumption history found."}), 404
 
         # 2. Transformation en DataFrame
         df = pd.DataFrame([{
-            "ds": pd.to_datetime(entry["createdAt"]),
-            "y": entry["qty"]
+            "ds": pd.to_datetime(entry["createdAt"], errors='coerce'),
+            "y": pd.to_numeric(entry["qty"], errors='coerce')
         } for entry in consumption_data])
 
-        df.dropna(inplace=True)
+        # 3. Nettoyage des données
+        df = df[df['ds'].notna() & df['y'].notna()]
+        df = df[df['y'] >= 0]
+        df = df.drop_duplicates(subset=['ds'])
+        df = df.sort_values('ds')
+
         if len(df) < 2:
-            return jsonify({"success": False, "error": "Not enough data points for prediction."}), 400
+            return jsonify({
+                "success": False,
+                "error": f"At least 2 data points required. Found {len(df)}."
+            }), 400
+        if df['y'].nunique() == 1 or df['y'].std() < 0.1:
+            return jsonify({"success": False, "error": "Data has too little variance."}), 400
 
-        # 3. Prophet forecast
-        model = Prophet()
+        # 4. Modèle Prophet avec contrainte logistique
+        df['floor'] = 0
+        df['cap'] = df['y'].max() * 2
+        model = Prophet(growth='logistic', weekly_seasonality=True, changepoint_prior_scale=0.05)
         model.fit(df)
-        future = model.make_future_dataframe(periods=days)
-        forecast = model.predict(future)
-        prediction_values = forecast.tail(days)[['ds', 'yhat']].to_dict(orient='records')
 
-        # 4. Récupération stock actuel
-        stock = stock_collection.find_one({ "_id": stock_id })
+        # 5. Prédiction
+        future = model.make_future_dataframe(periods=days)
+        future['floor'] = 0
+        future['cap'] = df['y'].max() * 2
+        forecast = model.predict(future)
+        prediction_values = [
+            {"ds": p['ds'].strftime('%a, %d %b %Y %H:%M:%S GMT'), "yhat": max(0, p['yhat'])}
+            for p in forecast.tail(days)[['ds', 'yhat']].to_dict(orient='records')
+        ]
+
+        # 6. Stock actuel
+        stock = stock_collection.find_one({"_id": stock_id})
         if not stock:
             return jsonify({"success": False, "error": "Stock not found."}), 404
 
         current_stock = stock.get("quantity", 0)
-
-        # 5. Total prédit et manque
         total_predicted_qty = sum(p['yhat'] for p in prediction_values)
         missing_qty = max(0, total_predicted_qty - current_stock)
 
-        # 6. Réponse
+        # 7. Réponse
         return jsonify({
             "success": True,
             "stockId": stock_id_str,
@@ -78,6 +89,5 @@ def predict():
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
-
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
