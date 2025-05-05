@@ -9,6 +9,38 @@ const {
 } = require("../../../utils/errors");
 
 class SupplierService {
+  static async calculateDynamicMoq(stockId, supplier) {
+    const stock = await Stock.findById(stockId).select("minQty");
+    if (!stock) {
+      throw new NotFoundError("Stock not found");
+    }
+    const minQty = stock.minQty || 1;
+    const contractMinOrder = supplier.contract?.minimumOrder || 1;
+    const moq = Math.max(minQty, contractMinOrder);
+    console.log(`Calculating MOQ: stock.minQty=${minQty}, contract.minimumOrder=${contractMinOrder}, result=${moq}`);
+    return moq;
+  }
+
+  // Helper method to calculate dynamic qualityScore
+  static async calculateDynamicQualityScore(supplierId) {
+    try {
+      const stats = await this.getTopSuppliersByDeliveryTime({
+        startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date().toISOString(),
+      });
+      const supplierStats = stats.find(s => s.supplierId.toString() === supplierId);
+      if (supplierStats) {
+        const maxDeliveryDays = 7;
+        const normalizedScore = 100 - Math.min(supplierStats.averageDeliveryTimeDays, maxDeliveryDays) / maxDeliveryDays * 100;
+        return Math.round(normalizedScore);
+      }
+      return 80;
+    } catch (error) {
+      console.error("Error calculating qualityScore:", error.message);
+      return 80;
+    }
+  }
+
   // Create a new supplier with email uniqueness check
   static async createSupplier(supplierData) {
     console.log("SupplierService.createSupplier - Data:", supplierData);
@@ -147,7 +179,7 @@ class SupplierService {
   }
 
   // Link stock to supplier by adding to stocks array
-  static async linkStock(supplierId, stockId, pricePerUnit, leadTimeDays) {
+  static async linkStock(supplierId, stockId, pricePerUnit, leadTimeDays, providedMoq, providedQualityScore) {
     if (
       !mongoose.Types.ObjectId.isValid(supplierId) ||
       !mongoose.Types.ObjectId.isValid(stockId)
@@ -172,15 +204,21 @@ class SupplierService {
       throw new ConflictError("Supplier is already linked to this stock");
     }
 
+    // Calculate dynamic values
+    const moq = providedMoq || await this.calculateDynamicMoq(stockId, supplier);
+    const qualityScore = providedQualityScore || await this.calculateDynamicQualityScore(supplierId);
+
     // Add new stock to the supplier's stocks array
     supplier.stocks.push({
       stockId,
       pricePerUnit,
       leadTimeDays,
+      moq,
+      qualityScore,
     });
 
     const updatedSupplier = await supplier.save();
-    console.log("SupplierService.linkStock - Linked:", stockId);
+    console.log("SupplierService.linkStock - Linked:", stockId, "MOQ:", moq, "QualityScore:", qualityScore);
     return updatedSupplier;
   }
 
@@ -261,16 +299,23 @@ class SupplierService {
         (ing) => ing.stockId.toString() === stock.stockId
       );
 
+      const moq = stock.moq || await this.calculateDynamicMoq(stock.stockId, supplier);
+      const qualityScore = stock.qualityScore || await this.calculateDynamicQualityScore(supplierId);
+
       if (existingStock) {
         // Update existing stock
-        existingStock.pricePerUnit = stock.pricePerUnit;
-        existingStock.leadTimeDays = stock.leadTimeDays;
+        existingStock.pricePerUnit = stock.pricePerUnit || existingStock.pricePerUnit;
+        existingStock.leadTimeDays = stock.leadTimeDays || existingStock.leadTimeDays;
+        existingStock.moq = moq;
+        existingStock.qualityScore = qualityScore;
       } else {
         // Add new stock
         supplier.stocks.push({
           stockId: stock.stockId,
           pricePerUnit: stock.pricePerUnit,
           leadTimeDays: stock.leadTimeDays,
+          moq,
+          qualityScore,
         });
       }
     }

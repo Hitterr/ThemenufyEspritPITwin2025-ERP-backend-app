@@ -21,6 +21,19 @@ const supplierSchema = new mongoose.Schema(
           required: true,
           min: 1,
         },
+        moq: {
+          type: Number,
+          required: true,
+          min: 1,
+          default: 1,
+        },
+        qualityScore: {
+          type: Number,
+          required: true,
+          min: 0,
+          max: 100,
+          default: 80,
+        },
       },
     ],
     contact: {

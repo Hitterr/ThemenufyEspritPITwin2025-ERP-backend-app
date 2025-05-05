@@ -4,6 +4,25 @@ const {
   ConflictError,
   ValidationError,
 } = require("../../../utils/errors");
+const yup = require("yup");
+
+const linkStockSchema = yup.object().shape({
+  stockId: yup.string().required("Stock ID is required"),
+  pricePerUnit: yup.number().min(0).required("Price per unit is required"),
+  leadTimeDays: yup.number().min(1).required("Lead time is required"),
+  moq: yup.number().min(1).optional(), // Optional, calculated dynamically if not provided
+  qualityScore: yup.number().min(0).max(100).optional(), // Optional, calculated dynamically
+});
+
+const bulkStockSchema = yup.array().of(
+  yup.object().shape({
+    stockId: yup.string().required("Stock ID is required"),
+    pricePerUnit: yup.number().min(0).optional(),
+    leadTimeDays: yup.number().min(1).optional(),
+    moq: yup.number().min(1).optional(),
+    qualityScore: yup.number().min(0).max(100).optional(),
+  })
+);
 
 // Create a new supplier
 const createSupplier = async (req, res) => {
@@ -141,12 +160,15 @@ const deleteSupplier = async (req, res) => {
 // Link a supplier to an stock
 const linkStock = async (req, res) => {
   try {
-    const { stockId, pricePerUnit, leadTimeDays } = req.body;
+    await linkStockSchema.validate(req.body, { abortEarly: false });
+    const { stockId, pricePerUnit, leadTimeDays, moq, qualityScore } = req.body;
     const result = await supplierService.linkStock(
       req.params.supplierId,
       stockId,
       pricePerUnit,
-      leadTimeDays
+      leadTimeDays,
+      moq,
+      qualityScore
     );
     res.status(201).json({
       success: true,
@@ -221,6 +243,7 @@ const unlinkStock = async (req, res) => {
 // Bulk update supplier stocks
 const bulkUpdateSupplierStocks = async (req, res) => {
   try {
+    await bulkStockSchema.validate(req.body.stocks, { abortEarly: false });
     const { supplierId } = req.params;
     const { stocks } = req.body;
     const result = await supplierService.bulkUpdateSupplierStocks(

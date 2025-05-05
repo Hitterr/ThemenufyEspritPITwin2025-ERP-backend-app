@@ -43,8 +43,9 @@ app.use(
 	require("@modules/forecastedSales/routes/forecastRoutes")
 );
 app.use("/api/stock", require("@modules/stock"));
-// Start server
+app.use("/api/supplier-orders", require("@modules/supplierOrder/supplierOrderRoutes"));
 app.use("/api/recipe", require("@modules/recipe/routes/recipeRoutes"));
+// Start server
 const http = require("http");
 const { initSocket } = require("./config/socket");
 const { verify } = require("crypto");
