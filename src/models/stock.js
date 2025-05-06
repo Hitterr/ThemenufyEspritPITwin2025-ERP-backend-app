@@ -36,6 +36,12 @@ const stockSchema = new Schema(
 			required: true,
 			min: 0,
 		},
+		shelfLifeDays: {
+			type: Number,
+			required: true,
+			min: 1,
+			default: 30,
+		  },
 		unit: {
 			type: String,
 			enum: ["g", "kg", "mg", "l", "ml", "cl", "pcs"],
