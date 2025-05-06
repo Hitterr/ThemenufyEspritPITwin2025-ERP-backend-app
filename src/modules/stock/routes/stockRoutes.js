@@ -6,6 +6,7 @@ const { getStockAnalysis } = require("../controllers/stock.stats.controller");
 const stockQRCodeController = require("../controllers/stock.qrcode.controller");
 const { verifyToken } = require("../../../middlewares/authMiddleware");
 // Stock management routes
+router.get("/:stockId/suppliers", stockController.getSuppliersForStock); 
 router.use(verifyToken);
 router.post("/", stockController.createStock);
 router.get("/", stockController.getAllStocks);
