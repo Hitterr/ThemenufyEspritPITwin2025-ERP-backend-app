@@ -443,6 +443,7 @@ class SupplierService {
       throw error;
     }
   }
+  
 }
 
 module.exports = SupplierService;

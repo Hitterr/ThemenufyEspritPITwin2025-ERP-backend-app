@@ -1,5 +1,6 @@
 const Stock = require("../../../models/stock");
 const { emitStockAlert, emitStockUpdate } = require("../sockets/socketStockService");
+const ConsumptionHistory = require("../../../models/ConsumptionHistory");
 
 class StockService {
     async createStock(stockData) {
@@ -100,6 +101,7 @@ class StockService {
         emitStockUpdate(stock);
         return stock;
     }
+      
 }
 
 module.exports = new StockService();

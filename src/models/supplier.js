@@ -79,5 +79,4 @@ supplierSchema.index({ "stocks.stockId": 1 }); // Index for faster stock lookups
 // Apply the pagination plugin
 supplierSchema.plugin(mongoosePaginate);
 
-module.exports =
-  mongoose.models.Supplier || mongoose.model("Supplier", supplierSchema);
+module.exports = mongoose.models.Supplier || mongoose.model("Supplier", supplierSchema);
