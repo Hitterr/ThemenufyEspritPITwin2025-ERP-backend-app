@@ -22,8 +22,18 @@ class ValidationError extends Error {
   }
 }
 
+class CustomError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.status = status || 500;
+    this.name = 'CustomError';
+  }
+}
+
+
 module.exports = {
   NotFoundError,
   ConflictError,
   ValidationError,
+  CustomError,
 };
