@@ -1,9 +1,11 @@
+import numpy as np
 from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
 import pandas as pd
 from datetime import datetime, timedelta
 from sklearn.ensemble import RandomForestRegressor
+from xgboost import XGBClassifier
 from statsmodels.tsa.api import SimpleExpSmoothing
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -11,6 +13,31 @@ import os
 app = Flask(__name__)
 app.config["MONGO_URI"] = os.environ.get("MONGO_URI", "mongodb://localhost:27017/the-menufy")
 mongo = PyMongo(app)
+def calculate_volatility_features(df):
+    # Volatility metrics
+    df['price_std'] = df['price'].rolling(30, min_periods=1).std()
+    df['max_drawdown'] = (df['price'].expanding().max() - df['price']).max()
+    df['daily_returns'] = df['price'].pct_change().abs()
+    df['volatility_30'] = df['daily_returns'].rolling(30, min_periods=1).std()
+    df['volatility_7'] = df['daily_returns'].rolling(7, min_periods=1).std()
+    return df[['price_std', 'max_drawdown', 'volatility_30', 'volatility_7']]
+
+def train_volatility_model(df):
+    X = calculate_volatility_features(df)
+    volatility_score = df['price_std']  # Use rolling price standard deviation
+    
+    # Create classes using quantiles
+    df['volatility_class'] = pd.qcut(volatility_score, q=3, labels=['low', 'medium', 'high'], duplicates='drop')
+    valid_data = df.dropna(subset=['volatility_class'])
+    if len(valid_data) < 3:
+        raise ValueError("Insufficient valid data points for classification after cleaning")
+    y = valid_data['volatility_class'].cat.codes
+    X = valid_data[['price_std', 'max_drawdown', 'volatility_30', 'volatility_7']]
+    
+    model = XGBClassifier(n_estimators=100, learning_rate=0.1, random_state=42)
+    model.fit(X, y)
+    return model
+
 def train_model(df):
     df['createdAt'] = pd.to_datetime(df['createdAt'])
     df.sort_values('createdAt', inplace=True)
@@ -45,7 +72,7 @@ def predict_price():
         'stockId': ObjectId(stock_id),
         'restaurantId': ObjectId(restaurant_id)
     }))
-    print(records)
+
     if not records:
         return jsonify({'error': 'No data found for the given stockId and restaurantId'}), 404
     # Prepare data for model
@@ -56,7 +83,7 @@ def predict_price():
     # Calculate features for prediction
     days_since_first = (future_date - df['createdAt'].min()).days
     # Added data validation checks
-    if len(records) < 30:
+    if len(records) < 3:
         return jsonify({'warning': 'Limited historical data ({} records), predictions may be less accurate'.format(len(records))}), 200
     
     # Enhanced feature calculation with fallbacks
@@ -71,14 +98,60 @@ def predict_price():
         warning = "Predicted price adjusted to 0.00 due to negative value"
     else:
         warning = None
+    # In predict_price route after prediction:
+    # Collect individual tree predictions
+    tree_preds = [tree.predict(scaled_features)[0] for tree in model.estimators_]
+    std_dev = np.std(tree_preds)
+    mean_price = np.mean(tree_preds)
+    
+    # Calculate confidence percentage 
+    confidence_percentage = (1 - (std_dev / (mean_price if mean_price != 0 else 1))) * 100
+    confidence_percentage = max(0, min(100, round(confidence_percentage, 2)))
+    
+    # Initialize response data first
     response_data = {
         'stockId': stock_id,
         'restaurantId': restaurant_id,
         'predicted_price': round(predicted_price, 2),
+        'confidence': confidence_percentage,
         'predicted_date': future_date.isoformat()
     }
-    if 'warning' in locals():
+    
+    # Handle warnings after initialization
+    if warning:
         response_data['warning'] = warning
+    
     return jsonify(response_data)
+@app.route('/volatility', methods=['GET'])
+def get_volatility_classification():
+    stock_id = request.args.get('stockId')
+    restaurant_id = request.args.get('restaurantId')
+    
+    if not stock_id or not restaurant_id:
+        return jsonify({'error': 'Missing stockId or restaurantId'}), 400
+    
+    records = list(mongo.db.pricehistories.find({
+        'stockId': ObjectId(stock_id),
+        'restaurantId': ObjectId(restaurant_id)
+    }))
+    
+    if len(records) < 3:
+        return jsonify({'error': 'Insufficient data (minimum 7 records required)'}), 400
+    
+    df = pd.DataFrame(records)
+    model = train_volatility_model(df)
+    
+    # Get latest volatility features
+    X = calculate_volatility_features(df).iloc[-1:]
+    prediction = model.predict(X)[0]
+    classes = ['low', 'medium', 'high']
+    
+    return jsonify({
+        'stockId': stock_id,
+        'restaurantId': restaurant_id,
+        'volatility_class': classes[prediction],
+        'confidence': float(model.predict_proba(X)[0].max())
+    })
+
 if __name__ == '__main__':
     app.run(debug=True)

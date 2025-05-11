@@ -17,7 +17,7 @@ venv.bak/
 # Docker
 docker-compose.override.yml
 docker-compose.yml~
-.env
+# .env
 
 # IDEs
 .vscode/
@@ -26,7 +26,7 @@ docker-compose.yml~
 *.ipynb_checkpoints
 
 # Environment files
-.env
+# .env
 .flaskenv
 
 # Local development databases
