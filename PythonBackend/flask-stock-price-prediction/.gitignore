@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Docker
+docker-compose.override.yml
+docker-compose.yml~
+.env
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+*.ipynb_checkpoints
+
+# Environment files
+.env
+.flaskenv
+
+# Local development databases
+*.sqlite
+/data/db/
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+Thumbs.db
+.DS_Store
+ehthumbs.db
+[Tt]humbs.db
+
+# MongoDB data files
+/data/
+/mongodata/
+/journal/
+*.ns
+*.lock
+*.0
+*.1
+*.2

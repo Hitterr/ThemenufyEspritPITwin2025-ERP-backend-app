@@ -1,0 +1,7 @@
+Flask
+Flask-PyMongo
+numpy
+scipy
+scikit-learn
+pandas
+statsmodels
