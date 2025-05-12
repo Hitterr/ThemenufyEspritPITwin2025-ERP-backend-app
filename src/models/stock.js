@@ -53,17 +53,6 @@ const stockSchema = new Schema(
 			ref: "Restaurant",
 			required: false,
 		},
-		qrCode: {
-			type: String,
-			required: false,
-			default: null,
-		},
-		shelfLifeDays: {
-			type: Number,
-			required: true,
-			min: 1,
-			default: 30,
-		},
 	},
 	{ timestamps: true }
 );

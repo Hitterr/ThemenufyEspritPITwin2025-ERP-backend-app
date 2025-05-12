@@ -1,7 +1,0 @@
-Flask
-pymongo
-face_recognition
-opencv-python
-python-dotenv
-PyJWT
-flask-cors

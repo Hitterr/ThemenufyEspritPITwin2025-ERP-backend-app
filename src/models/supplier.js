@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const mongoosePaginate = require("mongoose-paginate-v2");
+
 const supplierSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
@@ -81,12 +82,15 @@ const supplierSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
 // Indexes for better query performance
 supplierSchema.index({ "contact.email": 1 }, { unique: true });
 supplierSchema.index({ status: 1 });
 supplierSchema.index({ restaurantId: 1 });
 supplierSchema.index({ "stocks.stockId": 1 }); // Index for faster stock lookups
+
 // Apply the pagination plugin
 supplierSchema.plugin(mongoosePaginate);
+
 module.exports =
   mongoose.models.Supplier || mongoose.model("Supplier", supplierSchema);
