@@ -233,7 +233,7 @@ def optimize_supplier(stock_id):
 if __name__ == "__main__":
     start_time = time.time()
     print("Main block started", file=sys.stdout, flush=True)
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 30:
         print("Usage: python reorder.py <stock_id> <restaurant_id> [mode]", file=sys.stdout, flush=True)
         sys.exit(1)
     
