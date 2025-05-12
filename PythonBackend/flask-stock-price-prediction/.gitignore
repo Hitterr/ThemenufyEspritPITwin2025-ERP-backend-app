@@ -27,7 +27,7 @@ docker-compose.yml~
 
 # Environment files
 # .env
-.flaskenv
+# .flaskenv
 
 # Local development databases
 *.sqlite

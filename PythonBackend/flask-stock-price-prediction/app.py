@@ -9,9 +9,11 @@ from xgboost import XGBClassifier
 from statsmodels.tsa.api import SimpleExpSmoothing
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from flask_cors import CORS
 import os
 app = Flask(__name__)
 app.config["MONGO_URI"] = os.environ.get("MONGO_URI", "mongodb://localhost:27017/the-menufy")
+CORS(app)  # allow cross-origin from React/Express
 mongo = PyMongo(app)
 def calculate_volatility_features(df):
     # Volatility metrics
@@ -83,8 +85,8 @@ def predict_price():
     # Calculate features for prediction
     days_since_first = (future_date - df['createdAt'].min()).days
     # Added data validation checks
-    if len(records) < 3:
-        return jsonify({'warning': 'Limited historical data ({} records), predictions may be less accurate'.format(len(records))}), 200
+    # if len(records) < 3:
+    #     return jsonify({'warning': 'Limited historical data ({} records), predictions may be less accurate'.format(len(records))}), 200
     
     # Enhanced feature calculation with fallbacks
     moving_avg_7 = df['price'].tail(7).mean() if len(df) >=7 else df['price'].mean()
@@ -135,8 +137,8 @@ def get_volatility_classification():
         'restaurantId': ObjectId(restaurant_id)
     }))
     
-    if len(records) < 3:
-        return jsonify({'error': 'Insufficient data (minimum 7 records required)'}), 400
+    # if len(records) < 3:
+    #     return jsonify({'error': 'Insufficient data (minimum 7 records required)'}), 400
     
     df = pd.DataFrame(records)
     model = train_volatility_model(df)
@@ -154,4 +156,4 @@ def get_volatility_classification():
     })
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=True)
