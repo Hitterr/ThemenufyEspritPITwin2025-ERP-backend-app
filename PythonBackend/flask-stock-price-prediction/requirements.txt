@@ -1,0 +1,10 @@
+Flask
+Flask-PyMongo
+numpy
+scipy
+scikit-learn
+pandas
+statsmodels
+flask-cors
+--only-binary=:all:
+xgboost==2.0.3
