@@ -1,36 +1,17 @@
-//SeedReorder
-
-
-
 const mongoose = require('mongoose');
-const yup = require('yup'); // Added Yup import
+const { v4: uuidv4 } = require('uuid');
 const Restaurant = require('../models/restaurant');
 const Stock = require('../models/stock');
 const Supplier = require('../models/supplier');
 const ConsumptionHistory = require('../models/ConsumptionHistory');
-const User = require('../models/user');
-const Category = require('../models/Category');
-const PriceHistory = require('../models/PriceHistory');
-const Order = require('../models/Ordre');
-const MenuItem = require('../models/MenuItem');
-const Invoice = require('../models/invoice');
-const InvoiceItem = require('../models/InvoiceItem');
-const Ingredient = require('../models/ingredient');
-const ForecastedSales = require('../models/ForecastedSales');
-const Employee = require('../models/Employee');
-const Admin = require('../models/Admin');
-const { restaurantSchema } = require('../modules/restaurant/validators/restaurantvalidators');
-const { ingredientSchema } = require('../modules/ingredient/validators/ingredientValidator');
-const { validateSupplier } = require('../modules/supplier/validators/supplierValidators');
-const { userSchema } = require('../modules/user/validators/userValidator');
-const { adminSchema } = require('../modules/admin/validators/adminValidtor');
-const { employeeSchema } = require('../modules/employee/validators/employeeValidator');
-const { invoiceItemSchema } = require('../modules/invoice/validators/invoiceItemValidator');
-const { invoiceSchema } = require('../modules/invoice/validators/invoiceValidator');
-const { profileUpdateSchema } = require('../modules/auth/validators/profileValidator');
-const { v4: uuidv4 } = require('uuid'); // For generating unique identifiers
+
+// Define Category model (since Stock.type references Category)
+const Category = mongoose.models.Category || mongoose.model('Category', new mongoose.Schema({
+  name: { type: String, required: true },
+}));
+
 // MongoDB connection
-const MONGO_URI = 'mongodb://localhost:27017/the-menufy'; // Adjust if your URI is different
+const MONGO_URI = 'mongodb://localhost:27017/the-menufy';
 
 async function connectToMongoDB() {
   try {
@@ -44,11 +25,6 @@ async function connectToMongoDB() {
     process.exit(1);
   }
 }
-
-// Utility to generate random dates
-const getRandomDate = (start, end) => {
-  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-};
 
 // Utility to generate past dates for consumption history
 const getPastDate = (daysAgo) => {
@@ -64,7 +40,9 @@ async function clearCollections() {
     await Stock.deleteMany({});
     await Supplier.deleteMany({});
     await ConsumptionHistory.deleteMany({});
-    console.log('Cleared all data from restaurants, stocks, suppliers, and consumptionhistories collections');
+    await Category.deleteMany({});
+    await mongoose.connection.collection('recipes').deleteMany({});
+    console.log('Cleared all data from restaurants, stocks, suppliers, consumptionhistories, categories, and recipes collections');
 
     // Verify deletion
     const counts = {
@@ -72,6 +50,8 @@ async function clearCollections() {
       stocks: await Stock.countDocuments(),
       suppliers: await Supplier.countDocuments(),
       consumptionhistories: await ConsumptionHistory.countDocuments(),
+      categories: await Category.countDocuments(),
+      recipes: await mongoose.connection.collection('recipes').countDocuments(),
     };
     console.log('Collection counts after deletion:', counts);
   } catch (error) {
@@ -85,6 +65,15 @@ async function seedData() {
   try {
     // Clear existing data
     await clearCollections();
+
+    // Create Categories
+    const categories = [
+      { name: 'Ingredients' },
+      { name: 'Spices' },
+      { name: 'Dairy' },
+    ];
+    const categoryDocs = await Category.insertMany(categories);
+    console.log(`Inserted ${categoryDocs.length} categories`);
 
     // Create Restaurants
     const restaurants = [
@@ -113,7 +102,6 @@ async function seedData() {
         images: ['https://example.com/image3.jpg'],
       },
     ];
-
     const restaurantDocs = await Restaurant.insertMany(restaurants);
     console.log(`Inserted ${restaurantDocs.length} restaurants`);
 
@@ -122,41 +110,76 @@ async function seedData() {
       {
         libelle: 'Tomato Sauce',
         quantity: 100,
-        type: new mongoose.Types.ObjectId(), // Placeholder Category ID
+        type: categoryDocs[0]._id, // Ingredients
         price: 2.5,
         disponibility: true,
         maxQty: 200,
         minQty: 20,
         shelfLifeDays: 90,
         unit: 'l',
-        restaurant: restaurantDocs[0]._id,
+        restaurant: restaurantDocs[0]._id, // Tasty Bistro
       },
       {
         libelle: 'Pasta',
         quantity: 150,
-        type: new mongoose.Types.ObjectId(),
+        type: categoryDocs[0]._id, // Ingredients
         price: 1.8,
         disponibility: true,
         maxQty: 300,
         minQty: 30,
         shelfLifeDays: 180,
         unit: 'kg',
-        restaurant: restaurantDocs[0]._id,
+        restaurant: restaurantDocs[0]._id, // Tasty Bistro
+      },
+      {
+        libelle: 'Mozzarella Cheese',
+        quantity: 80,
+        type: categoryDocs[2]._id, // Dairy
+        price: 4.0,
+        disponibility: true,
+        maxQty: 150,
+        minQty: 15,
+        shelfLifeDays: 30,
+        unit: 'kg',
+        restaurant: restaurantDocs[0]._id, // Tasty Bistro
       },
       {
         libelle: 'Curry Powder',
         quantity: 50,
-        type: new mongoose.Types.ObjectId(),
+        type: categoryDocs[1]._id, // Spices
         price: 3.0,
         disponibility: true,
         maxQty: 100,
         minQty: 10,
         shelfLifeDays: 360,
         unit: 'kg',
-        restaurant: restaurantDocs[1]._id,
+        restaurant: restaurantDocs[1]._id, // Spicy Haven
+      },
+      {
+        libelle: 'Rice',
+        quantity: 200,
+        type: categoryDocs[0]._id, // Ingredients
+        price: 1.2,
+        disponibility: true,
+        maxQty: 400,
+        minQty: 40,
+        shelfLifeDays: 360,
+        unit: 'kg',
+        restaurant: restaurantDocs[1]._id, // Spicy Haven
+      },
+      {
+        libelle: 'Cream',
+        quantity: 60,
+        type: categoryDocs[2]._id, // Dairy
+        price: 3.5,
+        disponibility: true,
+        maxQty: 120,
+        minQty: 12,
+        shelfLifeDays: 14,
+        unit: 'l',
+        restaurant: restaurantDocs[1]._id, // Spicy Haven
       },
     ];
-
     const stockDocs = await Stock.insertMany(stockData);
     console.log(`Inserted ${stockDocs.length} stocks`);
 
@@ -179,9 +202,16 @@ async function seedData() {
             moq: 20,
             qualityScore: 85,
           },
+          {
+            stockId: stockDocs[2]._id, // Mozzarella Cheese
+            pricePerUnit: 3.8,
+            leadTimeDays: 4,
+            moq: 15,
+            qualityScore: 88,
+          },
         ],
         contact: {
-          email: `contact_foodco_${uuidv4()}@example.com`, // Unique email
+          email: `contact_foodco_${uuidv4()}@example.com`,
           phone: '+15145550123',
           representative: 'John Doe',
         },
@@ -205,22 +235,36 @@ async function seedData() {
           preferredMethod: 'bank',
           accountDetails: 'Bank of Montreal, Account #123456',
         },
-        restaurantId: restaurantDocs[0]._id,
+        restaurantId: restaurantDocs[0]._id, // Tasty Bistro
         notes: 'Reliable supplier for Italian ingredients',
       },
       {
         name: 'SpiceWorld',
         stocks: [
           {
-            stockId: stockDocs[2]._id, // Curry Powder
+            stockId: stockDocs[3]._id, // Curry Powder
             pricePerUnit: 2.8,
             leadTimeDays: 4,
             moq: 5,
             qualityScore: 88,
           },
+          {
+            stockId: stockDocs[4]._id, // Rice
+            pricePerUnit: 1.0,
+            leadTimeDays: 3,
+            moq: 50,
+            qualityScore: 90,
+          },
+          {
+            stockId: stockDocs[5]._id, // Cream
+            pricePerUnit: 3.2,
+            leadTimeDays: 2,
+            moq: 10,
+            qualityScore: 85,
+          },
         ],
         contact: {
-          email: `sales_spiceworld_${uuidv4()}@example.com`, // Unique email
+          email: `sales_spiceworld_${uuidv4()}@example.com`,
           phone: '+14165550124',
           representative: 'Jane Smith',
         },
@@ -244,13 +288,58 @@ async function seedData() {
           preferredMethod: 'credit',
           accountDetails: 'Visa ending in 1234',
         },
-        restaurantId: restaurantDocs[1]._id,
-        notes: 'Specializes in spices',
+        restaurantId: restaurantDocs[1]._id, // Spicy Haven
+        notes: 'Specializes in spices and grains',
       },
     ];
-
     const supplierDocs = await Supplier.insertMany(supplierData);
     console.log(`Inserted ${supplierDocs.length} suppliers`);
+
+    // Create Recipes (directly in MongoDB collection)
+    const recipeData = [
+      {
+        name: 'Margherita Pizza',
+        items: [
+          { stockId: stockDocs[0]._id, quantity: 0.5 }, // 0.5l Tomato Sauce
+          { stockId: stockDocs[2]._id, quantity: 0.2 }, // 0.2kg Mozzarella
+        ],
+        servings: 4,
+        salePrice: 12.0,
+        restaurantId: restaurantDocs[0]._id, // Tasty Bistro
+      },
+      {
+        name: 'Pasta Alfredo',
+        items: [
+          { stockId: stockDocs[1]._id, quantity: 0.3 }, // 0.3kg Pasta
+          { stockId: stockDocs[2]._id, quantity: 0.1 }, // 0.1kg Mozzarella
+        ],
+        servings: 2,
+        salePrice: 8.0,
+        restaurantId: restaurantDocs[0]._id, // Tasty Bistro
+      },
+      {
+        name: 'Butter Chicken',
+        items: [
+          { stockId: stockDocs[3]._id, quantity: 0.05 }, // 0.05kg Curry Powder
+          { stockId: stockDocs[5]._id, quantity: 0.2 }, // 0.2l Cream
+        ],
+        servings: 2,
+        salePrice: 15.0,
+        restaurantId: restaurantDocs[1]._id, // Spicy Haven
+      },
+      {
+        name: 'Biryani',
+        items: [
+          { stockId: stockDocs[4]._id, quantity: 0.5 }, // 0.5kg Rice
+          { stockId: stockDocs[3]._id, quantity: 0.03 }, // 0.03kg Curry Powder
+        ],
+        servings: 3,
+        salePrice: 10.0,
+        restaurantId: restaurantDocs[1]._id, // Spicy Haven
+      },
+    ];
+    await mongoose.connection.collection('recipes').insertMany(recipeData);
+    console.log(`Inserted ${recipeData.length} recipes`);
 
     // Create Consumption History (40 days for each stock)
     const consumptionData = [];
@@ -266,7 +355,6 @@ async function seedData() {
         });
       }
     }
-
     await ConsumptionHistory.insertMany(consumptionData);
     console.log(`Inserted ${consumptionData.length} consumption history records`);
 
@@ -276,6 +364,8 @@ async function seedData() {
       stocks: await Stock.countDocuments(),
       suppliers: await Supplier.countDocuments(),
       consumptionhistories: await ConsumptionHistory.countDocuments(),
+      categories: await Category.countDocuments(),
+      recipes: await mongoose.connection.collection('recipes').countDocuments(),
     };
     console.log('Final collection counts:', finalCounts);
 
