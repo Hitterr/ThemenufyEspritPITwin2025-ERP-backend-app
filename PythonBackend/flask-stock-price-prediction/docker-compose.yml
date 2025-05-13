@@ -1,0 +1,8 @@
+services:
+  web:
+    build: .
+    environment:
+      - MONGO_URI=mongodb://host.docker.internal:27017/the-menufy
+    ports:
+      - "${PORT:-5000}:${PORT:-5000}"
+    env_file: .env

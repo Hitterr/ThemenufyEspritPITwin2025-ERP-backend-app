@@ -1,16 +1,15 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-
-const supplierIngredientSchema = new Schema(
+const supplierStockSchema = new Schema(
   {
     supplierId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Supplier",
       required: true,
     },
-    ingredientId: {
+    stockId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Ingredient",
+      ref: "Stock",
       required: true,
     },
     pricePerUnit: {
@@ -26,11 +25,6 @@ const supplierIngredientSchema = new Schema(
   },
   { timestamps: true }
 );
-
 // Index for faster lookups
-supplierIngredientSchema.index(
-  { supplierId: 1, ingredientId: 1 },
-  { unique: true }
-);
-
-module.exports = mongoose.model("SupplierIngredient", supplierIngredientSchema);
+supplierStockSchema.index({ supplierId: 1, stockId: 1 }, { unique: true });
+module.exports = mongoose.model("SupplierStock", supplierStockSchema);

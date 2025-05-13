@@ -1,0 +1,31 @@
+# General development artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+venv/
+
+# Environment files
+.flaskenv
+
+# Logs and databases
+*.log
+logs/
+*.sqlite
+/data/
+
+# IDE configurations
+.vscode/
+.idea/
+*.iml
+
+# Docker-specific ignores
+Dockerfile
+.dockerignore
+docker-compose*
+
+# Build artifacts
+**/*.egg
+**/*.dist-info
+**/__pycache__
+**/*.pyc

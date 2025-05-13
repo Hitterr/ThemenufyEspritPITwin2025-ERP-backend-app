@@ -1,17 +1,39 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
+
+// Models
 const User = require("../../models/user");
 const Admin = require("../../models/admin");
 const Employee = require("../../models/employee");
 const Restaurant = require("../../models/restaurant");
 const SuperAdmin = require("../../models/superAdmin");
+const Category = require("../../models/category");
+const Stock = require("../../models/stock"); 
+const Ingredient = require("../../models/ingredient");
+//const SupplierIngredient = require("../../models/supplierIngredient");
+const Invoice = require("../../models/invoice");
+const InvoiceItem = require("../../models/invoiceItem");
+const ConsumptionHistory = require("../../models/ConsumptionHistory");
+const PriceHistory = require("../../models/PriceHistory");
+const Supplier = require("../../models/supplier");
 
-// Import seed data
+// Seeds
 const users = require("./userSeeds");
 const admins = require("./adminSeeds");
 const { employees } = require("./employeeSeeds");
 const { restaurants } = require("./restaurantSeeds");
 const superAdmins = require("./superAdminSeeds");
+const { categories } = require("./categorySeeds");
+const { stocks } = require("./stockSeeds");
+
+const { ingredients } = require("./ingredientSeeds");
+//const supplierIngredients = require("./supplierIngredientSeeds");
+const { invoices } = require("./invoiceSeeds");
+const invoiceItems = require("./invoiceItemSeeds");
+const consumptionHistories = require("./consumptionHistorySeeds");
+const priceHistories = require("./priceHistorySeeds");
+const { suppliers } = require("./supplierSeeds");
+
 const { hashPassword } = require("../../utils/hash");
 
 const seedDatabase = async () => {
@@ -25,6 +47,16 @@ const seedDatabase = async () => {
     await Employee.deleteMany({});
     await Admin.deleteMany({});
     await SuperAdmin.deleteMany({});
+    await Category.deleteMany({});
+    await Stock.deleteMany({}); 
+    await Ingredient.deleteMany({});
+    //await SupplierIngredient.deleteMany({});
+    await Invoice.deleteMany({});
+    await InvoiceItem.deleteMany({});
+    await ConsumptionHistory.deleteMany({});
+    await PriceHistory.deleteMany({});
+    await Supplier.deleteMany({});
+
     console.log("Cleared existing data...");
 
     // Create restaurants first
@@ -38,12 +70,9 @@ const seedDatabase = async () => {
         password: await hashPassword(user.password),
       }))
     );
-
-    // Create regular users
     await User.insertMany(usersWithHashedPasswords);
     console.log("Users seeded successfully!");
 
-    // Create admins
     const adminsWithHashedPasswords = await Promise.all(
       admins.map(async (admin) => ({
         ...admin,
@@ -53,7 +82,6 @@ const seedDatabase = async () => {
     await Admin.insertMany(adminsWithHashedPasswords);
     console.log("Admins seeded successfully!");
 
-    // Create super admins
     const superAdminsWithHashedPasswords = await Promise.all(
       superAdmins.map(async (superAdmin) => ({
         ...superAdmin,
@@ -63,7 +91,6 @@ const seedDatabase = async () => {
     await SuperAdmin.insertMany(superAdminsWithHashedPasswords);
     console.log("Super admins seeded successfully!");
 
-    // Prepare and create employees with restaurant references
     const employeesWithHashedPasswords = await Promise.all(
       employees.map(async (employee, index) => ({
         ...employee,
@@ -71,13 +98,39 @@ const seedDatabase = async () => {
         restaurantFK: createdRestaurants[index % createdRestaurants.length]._id,
       }))
     );
-
     await Employee.insertMany(employeesWithHashedPasswords);
     console.log("Employees seeded successfully!");
 
+    await Category.insertMany(categories);
+    console.log("Categories seeded successfully!");
+
+    await Stock.insertMany(stocks); // ✅ Insert stock data
+    console.log("Stocks seeded successfully!");
+
+    await Ingredient.insertMany(ingredients);
+    console.log("Ingredients seeded successfully!");
+
+    await Supplier.insertMany(suppliers);
+    console.log("Suppliers seeded successfully!");
+
+    //await SupplierIngredient.insertMany(supplierIngredients);
+    //console.log("Supplier ingredients seeded successfully!");
+
+    await Invoice.insertMany(invoices);
+    console.log("Invoices seeded successfully!");
+
+    await InvoiceItem.insertMany(invoiceItems);
+    console.log("Invoice items seeded successfully!");
+
+    await ConsumptionHistory.insertMany(consumptionHistories);
+    console.log("Consumption history seeded successfully!");
+
+    await PriceHistory.insertMany(priceHistories);
+    console.log("Price history seeded successfully!");
+
+ 
     await mongoose.disconnect();
     console.log("Database seeding completed!");
-    console.log("Disconnected from MongoDB");
     process.exit(0);
   } catch (error) {
     console.error("Error seeding database:", error);
