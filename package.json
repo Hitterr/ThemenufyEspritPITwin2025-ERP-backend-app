@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node --watch src/server.js",
     "seed": "node src/config/seeds/seeder.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --detectOpenHandles"
   },
   "_moduleAliases": {
     "@": "src",
@@ -52,5 +52,9 @@
     "onlyBuiltDependencies": [
       "bcrypt"
     ]
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.1.1"
   }
 }
