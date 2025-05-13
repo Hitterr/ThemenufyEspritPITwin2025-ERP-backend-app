@@ -5,12 +5,12 @@ const PriceHistoryController = require("../controllers/PriceHistoryController");
 
 router.post("/consumptions", historyController.createConsumption);
 router.get("/consumptions", historyController.getConsumption);
-router.get("/trends/daily/:restaurantId", historyController.getDailyTrends);
+router.get("/trends/daily", historyController.getDailyTrends);
 
 router.post("/Prices", PriceHistoryController.createPriceHistory);
 router.get("/trends", PriceHistoryController.getPriceHistories);
 router.get(
-  "/trends/daily/:stockId/:restaurantId",
+  "/trends/daily/:stockId",
   PriceHistoryController.getDailyPriceTrends
 );
 
