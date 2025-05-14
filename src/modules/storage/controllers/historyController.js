@@ -1,6 +1,7 @@
 const historyService = require("../services/historyService");
 exports.createConsumption = async (req, res) => {
   try {
+    const restaurantId = req.user.details.restaurant._id;
     const { stockId, ordreId } = req.body; // Utiliser req.body pour récupérer les données
     const { qty, wastageQty = 0 } = req.body;
     // Vérification des entrées
@@ -10,7 +11,6 @@ exports.createConsumption = async (req, res) => {
           "Tous les paramètres (restaurantId, stockId,ordreId, qty,wastageQty) sont requis.",
       });
     }
-    const restaurantId = req.user.details.restaurant._id;
     // Appel à la fonction de création
     const result = await historyService.createConsumption(
       stockId,
@@ -29,8 +29,8 @@ exports.createConsumption = async (req, res) => {
 };
 exports.getConsumption = async (req, res) => {
   try {
+    const restaurantId = req.user.details.restaurant._id;
     const { stockId = "", ordreId = "" } = req.query;
-    restaurantId = req.user.details.restaurant._id;
     if (!restaurantId) throw new Error("restaurantId is required");
     // Appel à la fonction de récupération des consommations
     const results = await historyService.getConsumptions(

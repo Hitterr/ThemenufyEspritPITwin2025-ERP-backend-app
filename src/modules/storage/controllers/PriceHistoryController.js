@@ -29,8 +29,8 @@ exports.createPriceHistory = async (req, res) => {
 };
 exports.getPriceHistories = async (req, res) => {
   try {
-    const { stockId = "", supplierId = "", invoiceId = "" } = req.query;
     const restaurantId = req.user.details.restaurant._id;
+    const { stockId = "", supplierId = "", invoiceId = "" } = req.query;
     // Au moins un filtre doit être présent
     const results = await priceHistoryService.getPriceHistories({
       restaurantId,
@@ -50,8 +50,8 @@ exports.getPriceHistories = async (req, res) => {
 };
 exports.getDailyPriceTrends = async (req, res) => {
   try {
-    const { stockId } = req.params;
     const restaurantId = req.user.details.restaurant._id;
+    const { stockId } = req.params;
     const days = parseInt(req.query.days) || 30;
     // Validation des paramètres
     if (!stockId || !restaurantId) {
