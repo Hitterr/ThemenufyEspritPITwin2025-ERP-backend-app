@@ -17,7 +17,9 @@ class SupplierService {
     const minQty = stock.minQty || 1;
     const contractMinOrder = supplier.contract?.minimumOrder || 1;
     const moq = Math.max(minQty, contractMinOrder);
-    console.log(`Calculating MOQ: stock.minQty=${minQty}, contract.minimumOrder=${contractMinOrder}, result=${moq}`);
+    console.log(
+      `Calculating MOQ: stock.minQty=${minQty}, contract.minimumOrder=${contractMinOrder}, result=${moq}`
+    );
     return moq;
   }
 
@@ -25,13 +27,21 @@ class SupplierService {
   static async calculateDynamicQualityScore(supplierId) {
     try {
       const stats = await this.getTopSuppliersByDeliveryTime({
-        startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+        startDate: new Date(
+          Date.now() - 30 * 24 * 60 * 60 * 1000
+        ).toISOString(),
         endDate: new Date().toISOString(),
       });
-      const supplierStats = stats.find(s => s.supplierId.toString() === supplierId);
+      const supplierStats = stats.find(
+        (s) => s.supplierId.toString() === supplierId
+      );
       if (supplierStats) {
         const maxDeliveryDays = 7;
-        const normalizedScore = 100 - Math.min(supplierStats.averageDeliveryTimeDays, maxDeliveryDays) / maxDeliveryDays * 100;
+        const normalizedScore =
+          100 -
+          (Math.min(supplierStats.averageDeliveryTimeDays, maxDeliveryDays) /
+            maxDeliveryDays) *
+            100;
         return Math.round(normalizedScore);
       }
       return 80;
@@ -131,7 +141,7 @@ class SupplierService {
   }
 
   // Update supplier with validation
-  static async updateSupplier(id, updateData) {
+  static async updateSupplier(id, updateData, restaurantId) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new ValidationError("Invalid supplier ID format");
     }
@@ -147,10 +157,14 @@ class SupplierService {
       }
     }
 
-    const supplier = await Supplier.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    }).populate("stocks.stockId");
+    const supplier = await Supplier.findOneAndUpdate(
+      { _id: id, restaurantId },
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).populate("stocks.stockId");
 
     if (!supplier) {
       throw new NotFoundError("Supplier not found");
@@ -160,7 +174,7 @@ class SupplierService {
   }
 
   // Delete supplier
-  static async deleteSupplier(id) {
+  static async deleteSupplier(id, restaurantId) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new ValidationError("Invalid supplier ID format");
     }
@@ -169,8 +183,11 @@ class SupplierService {
     if (!supplier) {
       throw new NotFoundError("Supplier not found");
     }
+    if (supplier.restaurantId.toString() !== restaurantId) {
+      throw new NotFoundError("Supplier not found in this restaurant");
+    }
 
-    await Supplier.deleteOne({ _id: id });
+    await Supplier.deleteOne({ _id: id, restaurantId });
     console.log("SupplierService.deleteSupplier - Deleted:", id);
     return {
       success: true,
@@ -179,7 +196,14 @@ class SupplierService {
   }
 
   // Link stock to supplier by adding to stocks array
-  static async linkStock(supplierId, stockId, pricePerUnit, leadTimeDays, providedMoq, providedQualityScore) {
+  static async linkStock(
+    supplierId,
+    stockId,
+    pricePerUnit,
+    leadTimeDays,
+    providedMoq,
+    providedQualityScore
+  ) {
     if (
       !mongoose.Types.ObjectId.isValid(supplierId) ||
       !mongoose.Types.ObjectId.isValid(stockId)
@@ -205,8 +229,11 @@ class SupplierService {
     }
 
     // Calculate dynamic values
-    const moq = providedMoq || await this.calculateDynamicMoq(stockId, supplier);
-    const qualityScore = providedQualityScore || await this.calculateDynamicQualityScore(supplierId);
+    const moq =
+      providedMoq || (await this.calculateDynamicMoq(stockId, supplier));
+    const qualityScore =
+      providedQualityScore ||
+      (await this.calculateDynamicQualityScore(supplierId));
 
     // Add new stock to the supplier's stocks array
     supplier.stocks.push({
@@ -218,7 +245,14 @@ class SupplierService {
     });
 
     const updatedSupplier = await supplier.save();
-    console.log("SupplierService.linkStock - Linked:", stockId, "MOQ:", moq, "QualityScore:", qualityScore);
+    console.log(
+      "SupplierService.linkStock - Linked:",
+      stockId,
+      "MOQ:",
+      moq,
+      "QualityScore:",
+      qualityScore
+    );
     return updatedSupplier;
   }
 
@@ -299,13 +333,18 @@ class SupplierService {
         (ing) => ing.stockId.toString() === stock.stockId
       );
 
-      const moq = stock.moq || await this.calculateDynamicMoq(stock.stockId, supplier);
-      const qualityScore = stock.qualityScore || await this.calculateDynamicQualityScore(supplierId);
+      const moq =
+        stock.moq || (await this.calculateDynamicMoq(stock.stockId, supplier));
+      const qualityScore =
+        stock.qualityScore ||
+        (await this.calculateDynamicQualityScore(supplierId));
 
       if (existingStock) {
         // Update existing stock
-        existingStock.pricePerUnit = stock.pricePerUnit || existingStock.pricePerUnit;
-        existingStock.leadTimeDays = stock.leadTimeDays || existingStock.leadTimeDays;
+        existingStock.pricePerUnit =
+          stock.pricePerUnit || existingStock.pricePerUnit;
+        existingStock.leadTimeDays =
+          stock.leadTimeDays || existingStock.leadTimeDays;
         existingStock.moq = moq;
         existingStock.qualityScore = qualityScore;
       } else {
@@ -488,7 +527,6 @@ class SupplierService {
       throw error;
     }
   }
-  
 }
 
 module.exports = SupplierService;
