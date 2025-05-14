@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const userService = require("../modules/user/services/userService");
+const superAdmin = require("../models/superAdmin");
 const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -13,6 +14,13 @@ const verifyToken = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     const existedUser = await userService.getUserById(req.user.userId);
+    const superadmin = await superAdmin.findOne({
+      _id: req.user.userId,
+    });
+    if (superadmin) {
+      req.user.details = superadmin;
+      return next();
+    }
     req.user.details = existedUser;
     // console.log(
     // 	"🔍 ~  ~ src/middlewares/authMiddleware.js:17 ~ req.user:",
