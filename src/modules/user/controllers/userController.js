@@ -1,5 +1,5 @@
 const { userService } = require("../services");
-const { userSchema } = require("../validators/userValidator");
+const { userSchema, updateUserSchema } = require("../validators/userValidator");
 const yup = require("yup");
 class UserController {
   async createUser(req, res) {
@@ -60,7 +60,11 @@ class UserController {
   }
   async updateUser(req, res) {
     try {
-      await userSchema.validate(req.body, { abortEarly: false });
+      await updateUserSchema.validate(req.body, { abortEarly: false });
+      console.log(
+        "🚀 ~ file: userController.js:74 ~ UserController ~ updateUser ~ req.body:",
+        req.body
+      );
       const updatedUser = await userService.updateUser(req.params.id, req.body);
       if (!updatedUser) {
         return res.status(404).json({

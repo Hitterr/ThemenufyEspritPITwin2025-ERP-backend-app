@@ -2,6 +2,7 @@ const yup = require("yup");
 
 const restaurantSchema = yup.object({
   nameRes: yup.string().trim().required("Le nom du restaurant est requis"),
+  phone: yup.string().trim().required("phone is required "),
   address: yup.string().trim().required("L'adresse est requise"),
   cuisineType: yup.string().trim().required("Le type de cuisine est requis"),
   taxeTPS: yup
@@ -23,7 +24,7 @@ const restaurantSchema = yup.object({
   menu: yup
     .string()
     .matches(/^[0-9a-fA-F]{24}$/, "L'ID du menu doit être un ObjectId valide")
-    .optional()
+    .optional(),
 });
 
 module.exports = {
