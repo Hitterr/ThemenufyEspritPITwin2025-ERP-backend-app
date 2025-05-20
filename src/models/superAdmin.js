@@ -15,6 +15,12 @@ const SuperAdminSchema = new Schema(
       required: true,
       minlength: 6, // Ensures a minimum password length
     },
+    role: {
+      type: String,
+      required: true,
+      default: "superadmin",
+      minlength: 6, // Ensures a minimum password length
+    },
     isEmailVerified: {
       type: Boolean,
       default: false,
@@ -27,6 +33,14 @@ const SuperAdminSchema = new Schema(
     blocked: {
       type: Boolean,
       default: false, 
+    },
+    archived: {
+      type: Boolean,
+      default: false,
+    },
+    blocked: {
+      type: Boolean,
+      default: false,
     },
     archived: {
       type: Boolean,

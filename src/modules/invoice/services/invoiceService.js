@@ -49,8 +49,8 @@ class InvoiceService {
     invoice = await invoice.save();
     return { ...invoice._doc, items };
   }
-  async getInvoices() {
-    return Invoice.find()
+  async getInvoices(query) {
+    return Invoice.find(query)
       .populate("created_by", "firstName lastName email")
       .populate("restaurant")
       .populate("supplier");
@@ -69,10 +69,10 @@ class InvoiceService {
     );
     return { ...invoice._doc, items };
   }
-  async updateStatus(invoiceId, status) {
+  async updateStatus(invoiceId, status, restaurant) {
     const delivered = status.toLowerCase() == "delivered" ? new Date() : null;
-    let invoice = await Invoice.findByIdAndUpdate(
-      invoiceId,
+    let invoice = await Invoice.findOneAndUpdate(
+      { _id: invoiceId, restaurant },
       { status, deliveredAt: delivered },
       { new: true }
     );
@@ -81,13 +81,13 @@ class InvoiceService {
     }
     return invoice;
   }
-  async updatePaidStatus(invoiceId, paidStatus) {
+  async updatePaidStatus(invoiceId, paidStatus, restaurant) {
     if (!["paid", "nopaid"].includes(paidStatus)) {
       throw new Error("Invalid paidStatus value. Must be 'paid' or 'nopaid'.");
     }
 
-    let invoice = await Invoice.findByIdAndUpdate(
-      invoiceId,
+    let invoice = await Invoice.findOneAndUpdate(
+      { _id: invoiceId, restaurant },
       { paidStatus },
       { new: true }
     );
@@ -98,8 +98,11 @@ class InvoiceService {
 
     return invoice;
   }
-  async deleteInvoice(invoiceId) {
-    const invoice = await Invoice.findByIdAndDelete(invoiceId);
+  async deleteInvoice(invoiceId, restaurant) {
+    const invoice = await Invoice.findOneAndDelete({
+      _id: invoiceId,
+      restaurant,
+    });
     if (!invoice) {
       throw new Error("Invoice not found");
     }
@@ -108,14 +111,15 @@ class InvoiceService {
     return invoice;
   }
 
-  async getInvoiceStats({ period = "day", startDate, endDate }) {
+  async getInvoiceStats({ period = "day", startDate, endDate, restaurant }) {
     const groupByField = this.getGroupByField(period);
     const matchStage =
       startDate && endDate
         ? {
             createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) },
+            restaurant,
           }
-        : {};
+        : { restaurant };
 
     // Aggregate data for both charts
     const stats = await Invoice.aggregate([

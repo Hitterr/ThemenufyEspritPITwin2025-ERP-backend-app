@@ -27,6 +27,8 @@ const bulkStockSchema = yup.array().of(
 // Create a new supplier
 const createSupplier = async (req, res) => {
   try {
+    const restaurantId = req.user.details.restaurant._id;
+    req.body.restaurantId = restaurantId;
     console.log("Creating supplier with data:", req.body);
     const supplier = await supplierService.createSupplier(req.body);
     res.status(201).json({
@@ -52,7 +54,8 @@ const createSupplier = async (req, res) => {
 // Get all suppliers with pagination and filtering
 const getAllSuppliers = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status, restaurantId } = req.query;
+    const restaurantId = req.user.details.restaurant._id;
+    const { page = 1, limit = 10, status } = req.query;
     const result = await supplierService.getAllSuppliers({
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
@@ -78,10 +81,24 @@ const getAllSuppliers = async (req, res) => {
 // Get a supplier by ID with populated data
 const getSupplierById = async (req, res) => {
   try {
+    const restaurantId = req.user.details.restaurant._id;
     const supplier = await supplierService.getSupplierById(
       req.params.supplierId
     );
-    res.status(200).json({
+    if (!supplier) {
+      return res.status(404).json({
+        success: false,
+        message: "Supplier not found",
+      });
+    }
+
+    if (supplier.restaurantId._id.toString() !== restaurantId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+    return res.status(200).json({
       success: true,
       data: supplier,
     });
@@ -109,9 +126,12 @@ const updateSupplier = async (req, res) => {
       "Data:",
       req.body
     );
+
+    const restaurantId = req.user.details.restaurant._id;
     const supplier = await supplierService.updateSupplier(
       req.params.supplierId,
-      req.body
+      req.body,
+      restaurantId
     );
     res.status(200).json({
       success: true,
@@ -137,7 +157,12 @@ const updateSupplier = async (req, res) => {
 // Delete a supplier
 const deleteSupplier = async (req, res) => {
   try {
-    const result = await supplierService.deleteSupplier(req.params.supplierId);
+    const restaurantId = req.user.details.restaurant._id;
+
+    const result = await supplierService.deleteSupplier(
+      req.params.supplierId,
+      restaurantId
+    );
     res.status(200).json({
       success: true,
       data: result,
