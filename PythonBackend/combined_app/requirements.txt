@@ -1,0 +1,14 @@
+Flask
+flask-cors
+pymongo
+numpy
+pandas
+scikit-learn
+xgboost
+statsmodels
+prophet
+face-recognition
+opencv-python
+python-dotenv
+PyJWT
+Werkzeug

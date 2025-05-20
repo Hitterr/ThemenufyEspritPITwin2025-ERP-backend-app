@@ -1,0 +1,11 @@
+services:
+  combined_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - ./uploads:/app/uploads
+    ports:
+      - "${PORT:-5000}:${PORT:-5000}"
+    env_file: .env

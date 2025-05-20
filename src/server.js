@@ -48,7 +48,7 @@ app.use(
   require("@modules/supplierOrder/supplierOrderRoutes")
 );
 app.use("/api/recipe", require("@modules/recipe/routes/recipeRoutes"));
-app.use("/api/reorder", require("./reorder-optimization/routes/reorder"));
+// app.use("/api/reorder", require("./reorder-optimization/routes/reorder"));
 // Start server
 const http = require("http");
 const { initSocket } = require("./config/socket");
