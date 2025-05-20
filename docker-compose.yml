@@ -1,0 +1,26 @@
+services:
+  python-backend:
+    build:
+      context: ./PythonBackend/combined_app
+      dockerfile: Dockerfile
+    volumes:
+      - .:/python-backend-volume
+      - ./PythonBackend/combined_app/uploads:/python-backend-volume/uploads
+    ports:
+      - "${PORT:-5001}:${PORT:-5001}"
+    env_file: ./PythonBackend/combined_app/.env
+  express-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/express-backend-volume
+    ports:
+      - "${PORT:-5000}:${PORT:-5000}"
+    environment:
+      - MONGO_URI=mongodb://host.docker.internal:27017/the-menufy
+      - FRONTEND_URL=http://host.docker.internal:5173/vite/demo
+    env_file: .env
+volumes:
+  python-backend-volume:
+  express-backend-volume:

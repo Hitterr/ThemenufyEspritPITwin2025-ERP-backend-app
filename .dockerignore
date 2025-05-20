@@ -1,0 +1,60 @@
+# Node.js dependencies and build artifacts
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+pnpm-debug.log
+.pnpm-store
+
+
+
+# Development files
+.git
+.github
+.gitignore
+.vscode
+.idea
+*.md
+!README.md
+
+# Testing
+coverage
+.nyc_output
+test
+tests
+__tests__
+
+# Build directories
+dist
+build
+out
+
+# Logs
+logs
+*.log
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Python backend specific (since you have a Python backend folder)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker related
+docker-compose*.yml
+Dockerfile*
+!Dockerfile
+
+# Uploads directory (since you're mounting it as a volume)
+uploads/

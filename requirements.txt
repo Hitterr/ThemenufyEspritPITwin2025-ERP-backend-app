@@ -1,4 +1,0 @@
-pymongo
-prophet
-pandas
-numpy
