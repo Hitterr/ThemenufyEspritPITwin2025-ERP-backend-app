@@ -10,28 +10,26 @@ const SuperAdmin = require("../../models/superAdmin");
 const Category = require("../../models/category");
 const Stock = require("../../models/stock"); 
 const Ingredient = require("../../models/ingredient");
-//const SupplierIngredient = require("../../models/supplierIngredient");
 const Invoice = require("../../models/invoice");
 const InvoiceItem = require("../../models/invoiceItem");
 const ConsumptionHistory = require("../../models/ConsumptionHistory");
 const PriceHistory = require("../../models/PriceHistory");
 const Supplier = require("../../models/supplier");
+const SupplierIngredient = require("../../models/supplierIngredient");
 
 // Seeds
-const users = require("./userSeeds");
-const admins = require("./adminSeeds");
+const { users } = require("./userSeeds");
+const { admins } = require("./adminSeeds");
 const { employees } = require("./employeeSeeds");
 const { restaurants } = require("./restaurantSeeds");
-const superAdmins = require("./superAdminSeeds");
+const { superAdmins } = require("./superAdminSeeds");
 const { categories } = require("./categorySeeds");
 const { stocks } = require("./stockSeeds");
-
 const { ingredients } = require("./ingredientSeeds");
-//const supplierIngredients = require("./supplierIngredientSeeds");
 const { invoices } = require("./invoiceSeeds");
-const invoiceItems = require("./invoiceItemSeeds");
-const consumptionHistories = require("./consumptionHistorySeeds");
-const priceHistories = require("./priceHistorySeeds");
+const { invoiceItems } = require("./invoiceItemSeeds");
+const { consumptionHistories } = require("./consumptionHistorySeeds");
+const { priceHistories } = require("./priceHistorySeeds");
 const { suppliers } = require("./supplierSeeds");
 
 const { hashPassword } = require("../../utils/hash");
@@ -50,12 +48,12 @@ const seedDatabase = async () => {
     await Category.deleteMany({});
     await Stock.deleteMany({}); 
     await Ingredient.deleteMany({});
-    //await SupplierIngredient.deleteMany({});
     await Invoice.deleteMany({});
     await InvoiceItem.deleteMany({});
     await ConsumptionHistory.deleteMany({});
     await PriceHistory.deleteMany({});
     await Supplier.deleteMany({});
+    await SupplierIngredient.deleteMany({});
 
     console.log("Cleared existing data...");
 
@@ -104,7 +102,7 @@ const seedDatabase = async () => {
     await Category.insertMany(categories);
     console.log("Categories seeded successfully!");
 
-    await Stock.insertMany(stocks); // ✅ Insert stock data
+    await Stock.insertMany(stocks);
     console.log("Stocks seeded successfully!");
 
     await Ingredient.insertMany(ingredients);
@@ -128,7 +126,6 @@ const seedDatabase = async () => {
     await PriceHistory.insertMany(priceHistories);
     console.log("Price history seeded successfully!");
 
- 
     await mongoose.disconnect();
     console.log("Database seeding completed!");
     process.exit(0);

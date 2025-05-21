@@ -1,9 +1,9 @@
+const mongoose = require("mongoose");
 const {
   restaurant1Id,
   restaurant2Id,
   restaurant3Id,
 } = require("./restaurantSeeds");
-const mongoose = require("mongoose");
 
 const employee1Id = new mongoose.Types.ObjectId();
 const employee2Id = new mongoose.Types.ObjectId();

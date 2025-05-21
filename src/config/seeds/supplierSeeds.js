@@ -1,4 +1,3 @@
-// seeds/supplierSeeds.js
 const mongoose = require("mongoose");
 const { restaurant1Id, restaurant2Id } = require("./restaurantSeeds");
 const { stock1Id, stock2Id, stock3Id } = require("./stockSeeds");

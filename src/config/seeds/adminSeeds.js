@@ -1,7 +1,12 @@
+const mongoose = require("mongoose");
 const { restaurant1Id, restaurant2Id } = require("./restaurantSeeds");
+
+const admin1Id = new mongoose.Types.ObjectId();
+const admin2Id = new mongoose.Types.ObjectId();
 
 const admins = [
   {
+    _id: admin1Id,
     firstName: "Admin",
     lastName: "User",
     email: "admin@menufy.com",
@@ -13,9 +18,11 @@ const admins = [
     isEmailVerified: true,
     authProvider: "local",
     restaurant: restaurant1Id,
+    isVerified: true,
     verifiedDevices: ["admin_device_1"],
   },
   {
+    _id: admin2Id,
     firstName: "Manager",
     lastName: "Admin",
     email: "manager@menufy.com",
@@ -26,9 +33,14 @@ const admins = [
     role: "admin",
     isEmailVerified: true,
     restaurant: restaurant2Id,
+    isVerified: true,
     authProvider: "local",
     verifiedDevices: ["admin_device_2"],
   },
 ];
 
-module.exports = admins;
+module.exports = {
+  admins,
+  admin1Id,
+  admin2Id
+};

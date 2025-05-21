@@ -46,8 +46,8 @@ def train_volatility_model(df):
     # Create classes using quantiles
     df['volatility_class'] = pd.qcut(volatility_score, q=3, labels=['low', 'medium', 'high'], duplicates='drop')
     valid_data = df.dropna(subset=['volatility_class'])
-    if len(valid_data) < 3:
-        raise ValueError("Insufficient valid data points for classification after cleaning")
+    # if len(valid_data) < 3:
+    #     raise ValueError("Insufficient valid data points for classification after cleaning")
     y = valid_data['volatility_class'].cat.codes
     X = valid_data[['price_std', 'max_drawdown', 'volatility_30', 'volatility_7']]
     
