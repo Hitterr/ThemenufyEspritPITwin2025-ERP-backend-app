@@ -26,6 +26,7 @@ const consumptionHistories = [
     qty: 2.5,
     ordreId: orderId1,
     createdAt: new Date("2023-01-15"),
+    wastageQty: 0.5,
   },
   {
     _id: consumptionHistory2Id,
@@ -34,6 +35,7 @@ const consumptionHistories = [
     qty: 32.5,
     ordreId: orderId1,
     createdAt: new Date("2023-04-15"),
+    wastageQty: 0,
   },
   {
     _id: consumptionHistory3Id,
@@ -42,6 +44,7 @@ const consumptionHistories = [
     qty: 1.8,
     ordreId: orderId2,
     createdAt: new Date("2023-01-16"),
+    wastageQty: 0,
   },
   // Additional consumption history records
   {
@@ -51,6 +54,7 @@ const consumptionHistories = [
     qty: 5.0,
     ordreId: orderId2,
     createdAt: new Date("2023-02-10"),
+    wastageQty: 0,
   },
   {
     _id: consumptionHistory5Id,
@@ -59,6 +63,7 @@ const consumptionHistories = [
     qty: 3.2,
     ordreId: orderId3,
     createdAt: new Date("2023-02-15"),
+    wastageQty: 0.5,
   },
   {
     _id: consumptionHistory6Id,
@@ -67,6 +72,7 @@ const consumptionHistories = [
     qty: 7.5,
     ordreId: orderId3,
     createdAt: new Date("2023-03-01"),
+    wastageQty: 2,
   },
   {
     _id: consumptionHistory7Id,
@@ -75,6 +81,7 @@ const consumptionHistories = [
     qty: 4.2,
     ordreId: orderId3,
     createdAt: new Date("2023-03-15"),
+    wastageQty: 1.5,
   },
   {
     _id: consumptionHistory8Id,
@@ -83,6 +90,7 @@ const consumptionHistories = [
     qty: 6.8,
     ordreId: orderId4,
     createdAt: new Date("2023-04-01"),
+    wastageQty: 1.2,
   },
   {
     _id: consumptionHistory9Id,
@@ -91,6 +99,7 @@ const consumptionHistories = [
     qty: 2.3,
     ordreId: orderId4,
     createdAt: new Date("2023-04-10"),
+    wastageQty: 0.5,
   },
   {
     _id: consumptionHistory10Id,
@@ -99,6 +108,7 @@ const consumptionHistories = [
     qty: 8.1,
     ordreId: orderId4,
     createdAt: new Date("2023-05-01"),
+    wastageQty: 1.2,
   },
 ];
 
