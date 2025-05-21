@@ -34,10 +34,32 @@ const { suppliers } = require("./supplierSeeds");
 
 const { hashPassword } = require("../../utils/hash");
 
+const checkIfDbEmpty = async () => {
+  // Check if any of the main collections have data
+  const restaurantCount = await Restaurant.countDocuments();
+  const userCount = await User.countDocuments();
+  const adminCount = await Admin.countDocuments();
+  
+  // If any of these collections have data, consider the DB not empty
+  return restaurantCount === 0 && userCount === 0 && adminCount === 0;
+};
+
 const seedDatabase = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("Connected to MongoDB...");
+
+    // Check if database is empty before seeding
+    const isEmpty = await checkIfDbEmpty();
+    
+    if (!isEmpty) {
+      console.log("Database already has data. Skipping seed operation.");
+      await mongoose.disconnect();
+      process.exit(0);
+      return;
+    }
+    
+    console.log("Database is empty. Starting seed operation...");
 
     // Clear existing data
     await User.deleteMany({});

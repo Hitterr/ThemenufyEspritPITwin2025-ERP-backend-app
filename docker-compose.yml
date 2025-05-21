@@ -11,6 +11,8 @@ services:
     env_file: ./PythonBackend/combined_app/.env
     networks:
       - menufy-network
+    depends_on:
+      - mongodb
   express-backend:
     build:
       context: .
@@ -20,14 +22,25 @@ services:
     ports:
       - "${PORT:-5000}:${PORT:-5000}"
     environment:
-      - MONGO_URI=mongodb://host.docker.internal:27017/the-menufy
+      - MONGO_URI=mongodb://mongodb:27017/the-menufy
       - FRONTEND_URL=http://localhost:5173/vite/demo
     env_file: .env
+    networks:
+      - menufy-network
+    depends_on:
+      - mongodb
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
     networks:
       - menufy-network
 volumes:
   python-backend-volume:
   express-backend-volume:
+  mongodb-data:
 networks:
   menufy-network:
     driver: bridge
